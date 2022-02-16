@@ -1,0 +1,39 @@
+---
+title: "Tidyverse"
+author: "R package build"
+date: '2022-02-16'
+slug: tidyverse
+categories:
+- []
+tags:
+- []
+---
+
+## Import File From GitHub
+
+### Call Libraries 
+```{r}
+library(tidyverse)
+```
+
+```{r}
+url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/hotels.csv'
+hotels <- read_csv(url)
+names(hotels)
+```
+
+### Summary of Variables 
+```{r}
+glimpse(hotels)
+```
+
+## Select Commands
+
+```{r}
+select(hotels, lead_time)
+```
+
+
+
+
+
