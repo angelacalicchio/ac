@@ -9,6 +9,7 @@ tags:
 - []
 ---
 
+# Exercise 1
 ## Import File From GitHub
 
 ### Call Libraries 
@@ -31,6 +32,16 @@ glimpse(hotels)
 
 ```{r}
 select(hotels, lead_time)
+```
+
+```{r}
+hotels %>%
+  select(hotel, lead_time) %>% 
+  arrange(desc(lead_time))
+```
+```{r}
+ggplot(hotels, aes(x = hotel, fill = deposit_type)) +
+  geom_bar()
 ```
 
 
