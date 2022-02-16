@@ -1,0 +1,178 @@
+---
+title: "Visualizing Numerical Data"
+author: "R package build"
+date: '2022-02-16'
+slug: visualizing-numerical-data
+categories: R
+tags: GGPLOT2
+---
+
+# Loans 
+
+```{r}
+library(openintro)
+glimpse(loans_full_schema)
+```
+
+## Narrowing Down the Data
+
+```{r}
+loans <- loans_full_schema %>%
+  select(loan_amount, interest_rate, term, grade, 
+         state, annual_income, homeownership, debt_to_income)
+glimpse(loans)
+```
+
+## Histogram 
+
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_histogram()
+```
+
+## Histograms and Experimenting with Binwidth 
+
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_histogram(binwidth = 1000)
+ggplot(loans, aes(x = loan_amount)) +
+  geom_histogram(binwidth = 5000)
+ggplot(loans, aes(x = loan_amount)) +
+  geom_histogram(binwidth = 20000)
+```
+
+## Customizing Histograms
+```{r}
+ggplot(loans, aes(x = loan_amount)) + geom_histogram(binwidth = 5000) +
+  labs(x = "Loan amount ($)",y = "Frequency",title = "Amounts of Lending Club loans")
+```
+
+## Using Categorical Variables
+
+```{r}
+ggplot(loans, aes(x = loan_amount, 
+                  fill = homeownership)) +
+  geom_histogram(binwidth = 5000,
+                 alpha = 0.5) +
+  labs(
+    x = "Loan amount ($)",
+    y = "Frequency",
+    title = "Amounts of Lending Club loans")
+```
+
+## Facet With a Categorical Variable
+
+```{r}
+ggplot(loans, aes(x = loan_amount, fill = homeownership)) + 
+  geom_histogram(binwidth = 5000) +
+  labs(
+    x = "Loan amount ($)",
+    y = "Frequency",
+    title = "Amounts of Lending Club loans"
+  ) +
+  facet_wrap(~ homeownership, nrow = 3)
+```
+
+## Density Plot 
+
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_density()
+```
+
+## Desity Plots and Adjusting Binwidth
+Adjust 0.5
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_density(adjust = 0.5)
+```
+Adjust 1
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_density(adjust = 1)
+```
+Adjust 2
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_density(adjust = 2)
+```
+
+## Customizing Density Plots 
+
+```{r}
+ggplot(loans, aes(x = loan_amount)) +
+  geom_density(adjust = 2) +
+  labs(
+    x = "Loan amount ($)",
+    y = "Density",
+    title = "Amounts of Lending Club loans"
+  )
+```
+
+## Adding a Categorical Variable to a Density Plot 
+```{r}
+ggplot(loans, aes(x = loan_amount, 
+                  fill = homeownership)) +
+  geom_density(adjust = 2, 
+               alpha = 0.5) +
+  labs(
+    x = "Loan amount ($)",
+    y = "Density",
+    title = "Amounts of Lending Club loans", 
+    fill = "Homeownership"
+  )
+```
+
+## Boxplots 
+
+```{r}
+ggplot(loans, aes(x = interest_rate)) +
+  geom_boxplot()
+```
+
+## Boxplots and Outliers
+
+```{r}
+ggplot(loans, aes(x = annual_income)) +
+  geom_boxplot()
+```
+
+## Customizing Box Plots 
+
+```{r}
+ggplot(loans, aes(x = interest_rate)) +
+  geom_boxplot() +
+  labs(
+    x = "Interest rate (%)",
+    y = NULL,
+    title = "Interest rates of Lending Club loans"
+  ) +
+  theme(
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank()
+  )
+```
+
+## Adding a Categorical Variable to a Box Plot
+
+```{r}
+ggplot(loans, aes(x = interest_rate,
+                  y = grade)) +
+  geom_boxplot() +
+  labs(
+    x = "Interest rate (%)",
+    y = "Grade",
+    title = "Interest rates of Lending Club loans",
+    subtitle = "by grade of loan"
+  )
+```
+
+## Scatter Plots
+
+```{r}
+ggplot(loans, aes(x = debt_to_income, y = interest_rate)) +
+  geom_point()
+```
+
+
+
