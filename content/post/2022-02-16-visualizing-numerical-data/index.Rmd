@@ -10,6 +10,7 @@ tags: GGPLOT2
 # Loans 
 
 ```{r}
+library(tidyverse)
 library(openintro)
 glimpse(loans_full_schema)
 ```
