@@ -1,0 +1,71 @@
+---
+title: "Visualizing Categroical Data"
+author: "R package build"
+date: '2022-02-16'
+slug: visualizing-categroical-data
+categories: R
+tags:
+- GGPLOT2
+- Loans
+---
+
+# Loans 
+
+```{r}
+library(tidyverse)
+library(openintro)
+loans <- loans_full_schema %>%
+  select(loan_amount, interest_rate, term, grade, 
+         state, annual_income, homeownership, debt_to_income)
+glimpse(loans)
+```
+
+## Bar Plots
+Normal Bar Plot
+```{r}
+ggplot(loans, aes(x = homeownership)) +
+  geom_bar()
+```
+Segmented Bar Plot
+```{r}
+ggplot(loans, aes(x = homeownership, 
+                  fill = grade)) +
+  geom_bar()
+```
+```{r}
+ggplot(loans, aes(x = homeownership, fill = grade)) +
+  geom_bar(position = "fill")
+```
+
+## Customizing Bar Plots
+
+```{r}
+ggplot(loans, aes(y = homeownership,
+                  fill = grade)) +
+  geom_bar(position = "fill") +
+  labs(
+    x = "Proportion",
+    y = "Homeownership",
+    fill = "Grade",
+    title = "Grades of Lending Club loans",
+    subtitle = "and homeownership of lendee"
+  )
+```
+
+# Relationships between numerical and categorical variables
+
+# Violin Plots 
+
+```{r}
+ggplot(loans, aes(x = homeownership, y = loan_amount)) +
+  geom_violin()
+```
+
+## Ridge Plots 
+
+```{r}
+library(ggridges)
+ggplot(loans, aes(x = loan_amount, y = grade, fill = grade, color = grade)) + 
+  geom_density_ridges(alpha = 0.5)
+```
+
