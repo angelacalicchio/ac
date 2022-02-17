@@ -1,0 +1,56 @@
+---
+title: "Self Study Exercise 2"
+author: "R package build"
+date: '2022-02-16'
+slug: self-study-exercise-2
+categories: R
+tags:
+- GGPLOT2
+- Tidying Data
+---
+
+# Tidying Data
+## Calling Raw Data
+```{r}
+library(tidyverse)
+url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/trump.csv'
+trump <- read_csv(url)
+```
+## View Data
+```{r}
+glimpse(trump)
+```
+## Pivot
+```{r}
+trump_longer <- trump %>%
+  pivot_longer(
+    cols = c(approval, disapproval),
+    names_to = "rating_type",
+    values_to = "rating_value"
+  )
+trump_longer
+```
+## Plot
+```{r}
+ggplot(trump_longer, 
+       aes(x = date, y = rating_value, color = rating_type, group = rating_type)) +
+  geom_line() +
+  facet_wrap(~ subgroup)
+```
+## More In-Depth Plot
+```{r}
+ggplot(trump_longer, 
+       aes(x = date, y = rating_value, 
+           color = rating_type, group = rating_type)) +
+  geom_line() +
+  facet_wrap(~ subgroup) +
+  scale_color_manual(values = c("darkgreen", "orange")) +
+  labs(
+    x = "Date", y = "Rating",
+    color = NULL,
+    title = "How (un)popular is Donald Trump?",
+    subtitle = "Estimates based on polls of all adults and polls of likely/registered voters",
+    caption = "Source: FiveThirtyEight modeling estimates"
+  )
+```
+
