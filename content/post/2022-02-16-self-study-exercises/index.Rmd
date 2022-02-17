@@ -1,0 +1,9 @@
+---
+title: Self Study Exercises
+author: R package build
+date: '2022-02-16'
+slug: self-study-exercises
+categories:
+  - R
+tags: []
+---
