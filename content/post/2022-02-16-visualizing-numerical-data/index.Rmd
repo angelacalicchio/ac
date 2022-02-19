@@ -177,3 +177,5 @@ ggplot(loans, aes(x = debt_to_income, y = interest_rate)) +
 
 
 
+
+

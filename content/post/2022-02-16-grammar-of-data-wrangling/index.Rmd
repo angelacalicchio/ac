@@ -48,3 +48,4 @@ ggplot(hotels, aes(x = hotel, fill = deposit_type)) +
 
 
 
+
