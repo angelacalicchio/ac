@@ -1,14 +1,10 @@
 ---
-title: R Markdown
-author: angelacalicchio
-date: 2/17/2022
-output: 
-  html_document:
-    theme: yeti 
-    highlight: zenburn
-    df_print: paged
-    toc: true
-    toc_float: true
+title: "R Markdown"
+author: "R package build"
+date: '2022-02-18'
+slug: r-markdown
+categories: R
+tags: []
 ---
 
 ```{r setup, include=FALSE}
