@@ -21,7 +21,6 @@ data(iris)
 # Load Packages
 pkgs <- c("rstatix", "emmeans", "psych", "tidyr", "tidyverse", "psych", "dplyr", "ggplot2", "lm.beta", "car", "Hmisc", "skimr", "janitor")
 lapply(pkgs, library, character.only = TRUE)
-setwd("/Users/angelacalicchio/Desktop/Rmarkdown")
 ```
 
 # Intro
@@ -47,7 +46,7 @@ mean(iris$Sepal.Length)
 unique(iris$Species)
 ```
 ##Inline Code
-Two plus two equals `r 2+`.
+Two plus two equals `r 2+2`.
 The average Sepal Length is `r mean(iris$Sepal.Length)`.
 The three levels of Species are 'r unique(iris$Species)`.
 
@@ -141,7 +140,7 @@ data <- data.frame(x = 1:5,   # Create example data
                    y = 1:5)
 ggplot(data, aes(x, y)) +     #Create ggplot2 with default axis limits
   geom_point()
-ggp +                         #Modify axis limits
+ggplot(data, aes(x, y)) +                         #Modify axis limits
   scale_x_continuous(limits = c(2, 5))
 ```
 
@@ -205,9 +204,9 @@ y <- x * 2
 
 ## Basic TOC
 ```{r,eval=FALSE}
-title: "R Markdown"
-author: "angelacalicchio"
-date: "'r Sys.Date()'"
+title: R Markdown
+author: angelacalicchio
+date: 'r Sys.Date()'
 output:
   html_document
   toc: true
@@ -291,8 +290,10 @@ output:
 # Figures
 
 ## Embedded Images
-image: ![](fau.jpeg){width=50%}
+```{r,eval=FALSE}
+*image: ![](*enter image id here*){width=50%}
 Added {width=50%} to make it half the page, but don't have to use this
+```
 
 ## Creating Images 
 ```{r,eval=FALSE}
