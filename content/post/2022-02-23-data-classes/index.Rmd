@@ -1,9 +1,175 @@
 ---
-title: Data Classes
-author: R package build
+title: "Data Classes"
+author: "R package build"
 date: '2022-02-23'
 slug: data-classes
-categories:
-  - R
+categories: R
 tags: []
 ---
+
+# Data Classes
+
+```{r}
+library(tidyverse)
+url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/cat-lovers.csv'
+cat_lovers <- read.csv(url)
+```
+
+### Factors
+R uses factors to handle categorical variables, variables that have a fixed and known set of possible values
+```{r}
+x <- factor(c("BS", "MS", "PhD", "MS"))
+x
+```
+```{r}
+typeof(x)
+class(x)
+```
+We can think of factors like character (level labels) and an integer (level numbers) glued together
+```{r}
+glimpse(x)
+```
+```{r}
+as.integer(x)
+```
+
+### Dates
+```{r}
+y <- as.Date("2020-01-01")
+y
+```
+```{r}
+typeof(y)
+class(y)
+```
+We can think of dates like an integer (the number of days since the origin, 1 Jan 1970) and an integer (the origin) glued together
+```{r}
+as.integer(y)
+```
+```{r}
+as.integer(y) / 365 # Roughly 50 years
+```
+
+### Data Frames
+We can think of data frames like like vectors of equal length glued together
+```{r}
+df <- data.frame(x = 1:2, y = 3:4)
+df
+```
+```{r}
+typeof(df)
+class(df)
+```
+
+### Lists 
+```{r}
+l <- list(
+  x = 1:4,
+  y = c("hi", "hello", "jello"),
+  z = c(TRUE, FALSE))
+l
+```
+
+#### Lists and Data Frames 
+```{r}
+df
+```
+```{r}
+df %>%
+  pull(y)
+```
+
+## Cat Lovers
+```{r}
+glimpse(cat_lovers)
+```
+
+### Data Coercion when Plotting
+First, let's see what the data looks like without **Coercion**
+```{r}
+ggplot(cat_lovers, mapping = aes(x = handedness)) +
+  geom_bar()
+```
+
+Now, let's see what the data looks like after using **mutate()** 
+```{r}
+cat_lovers %>%
+  mutate(handedness = fct_infreq(handedness)) %>%
+  ggplot(mapping = aes(x = handedness)) +
+  geom_bar()
+```
+
+## Hotels
+```{r}
+library(tidyverse)
+url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/hotels.csv'
+hotels <- read.csv(url)
+```
+### Calculate and visualise the number of bookings on any given arrival date
+```{r, results=FALSE}
+hotels %>%
+  select(starts_with("arrival_"))
+```
+
+### Step 1: Contruct Dates
+```{r, results=FALSE}
+library(glue)
+hotels %>%
+  mutate(
+    arrival_date = glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}")
+    ) %>% 
+  relocate(arrival_date)
+```
+
+### Step 2: Count Bookings per Date
+```{r, results=FALSE}
+hotels %>%
+  mutate(arrival_date = glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}")) %>%
+  count(arrival_date)
+```
+
+### Step 3: Visualize Bookings per Date
+```{r}
+hotels %>%
+  mutate(arrival_date = glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}")) %>%
+  count(arrival_date) %>%
+  ggplot(aes(x = arrival_date, y = n, group = 1)) +
+  geom_line()
+```
+
+> We need to revise the data and construct dates "as dates"
+
+### Step 1: Revised
+```{r, results=FALSE}
+library(lubridate)
+hotels %>%
+  mutate(
+    arrival_date = ymd(glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}"))
+    ) %>% 
+  relocate(arrival_date)
+```
+
+### Step 2: Revised
+```{r, results=FALSE}
+hotels %>%
+  mutate(arrival_date = ymd(glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}"))) %>% 
+  count(arrival_date)
+```
+
+### Step 3A: Visualize bookings per date
+```{r}
+hotels %>%
+  mutate(arrival_date = ymd(glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}"))) %>% 
+  count(arrival_date) %>%
+  ggplot(aes(x = arrival_date, y = n, group = 1)) +
+  geom_line()
+```
+
+Step 3B: Visualize using a smooth curve
+```{r}
+hotels %>%
+  mutate(arrival_date = ymd(glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}"))) %>% 
+  count(arrival_date) %>%
+  ggplot(aes(x = arrival_date, y = n, group = 1)) +
+  geom_smooth()
+```
