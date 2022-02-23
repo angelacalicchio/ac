@@ -23,7 +23,7 @@ tags: []
 ```{r, results=FALSE}
 library(tidyverse)
 url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/nobel.csv'
-nobel <- read.csv(url)
+nobel <- read_csv(url)
 nobel
 ```
 
@@ -101,21 +101,21 @@ read_csv(url, col_types = list(col_double(),
 
 ## Favorite Foods
 ```{r}
-url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/favourite-food.csv'
-fav_food <- read.csv(url)
-fav_food
+ library(readxl)
+ fav_food <- read_excel("~/Downloads/favourite-food.xlsx")
+ View(fav_food)   
 ```
 
 ### Variable Names
 ```{r}
-fav_food <- read.csv(url) %>%
+fav_food <- read_excel("~/Downloads/favourite-food.xlsx") %>%
   janitor::clean_names()
 fav_food
 ```
 
 ### Handling NAs
 ```{r}
-fav_food <- read.csv(url,
+fav_food <- read_excel("~/Downloads/favourite-food.xlsx",
                        na = c("N/A", "99999")) %>%
   janitor::clean_names()
 fav_food
@@ -147,7 +147,7 @@ fav_food %>%
 
 ## Putting it all together
 ```{r}
-fav_food <- read.csv(url, na = c("N/A", "99999")) %>%
+fav_food <- read_excel("~/Downloads/favourite-food.xlsx", na = c("N/A", "99999")) %>%
   janitor::clean_names() %>%
   mutate(
     age = if_else(age == "five", "5", age), 
