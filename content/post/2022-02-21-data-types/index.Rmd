@@ -188,13 +188,13 @@ url <- 'https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/hotels.
 hotels <- read.csv(url)
 ```
 ### Calculate and visualise the number of bookings on any given arrival date
-```{r}
+```{r, results=FALSE}
 hotels %>%
   select(starts_with("arrival_"))
 ```
 
 ### Step 1: Contruct Dates
-```{r}
+```{r, results=FALSE}
 library(glue)
 hotels %>%
   mutate(
@@ -204,7 +204,7 @@ hotels %>%
 ```
 
 ### Step 2: Count Bookings per Date
-```{r}
+```{r, results=FALSE}
 hotels %>%
   mutate(arrival_date = glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}")) %>%
   count(arrival_date)
@@ -222,7 +222,7 @@ hotels %>%
 > We need to revise the data and construct dates "as dates"
 
 ### Step 1: Revised
-```{r}
+```{r, results=FALSE}
 library(lubridate)
 hotels %>%
   mutate(
@@ -232,7 +232,7 @@ hotels %>%
 ```
 
 ### Step 2: Revised
-```{r}
+```{r, results=FALSE}
 hotels %>%
   mutate(arrival_date = ymd(glue("{arrival_date_year} {arrival_date_month} {arrival_date_day_of_month}"))) %>% 
   count(arrival_date)
