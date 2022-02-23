@@ -1,0 +1,321 @@
+---
+title: "Importing Data"
+author: "R package build"
+date: '2022-02-22'
+slug: importing-data
+categories: R
+tags: []
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="reading-rectangular-data-into-r" class="section level1">
+<h1>Reading rectangular data into R</h1>
+<div id="readr" class="section level3">
+<h3>Readr</h3>
+<ul>
+<li>read_csv() - comma delimited files</li>
+<li>read_csv2() - semicolon separated files (common in countries where , is used as the decimal place)</li>
+<li>read_tsv() - tab delimited files</li>
+<li>read_delim() - reads in files with any delimiter</li>
+<li>read_fwf() - fixed width files</li>
+</ul>
+</div>
+<div id="readxl" class="section level3">
+<h3>Readxl</h3>
+<ul>
+<li>read_excel() - read xls or xlsx files</li>
+</ul>
+</div>
+<div id="reading-data" class="section level2">
+<h2>Reading Data</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+## ✓ tibble  3.1.6     ✓ dplyr   1.0.7
+## ✓ tidyr   1.2.0     ✓ stringr 1.4.0
+## ✓ readr   2.1.2     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/nobel.csv&#39;
+nobel &lt;- read.csv(url)
+nobel</code></pre>
+</div>
+<div id="writing-data" class="section level2">
+<h2>Writing Data</h2>
+<div id="write-a-file" class="section level3">
+<h3>Write a File</h3>
+<pre class="r"><code>url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/df-na.csv&#39;
+df_na &lt;- read.csv(url)</code></pre>
+<pre class="r"><code>df &lt;- tribble(
+  ~x, ~y,
+  1,  &quot;a&quot;,
+  2,  &quot;b&quot;,
+  3,  &quot;c&quot;
+)
+write_csv(df, file = &quot;df_na&quot;)
+read_csv(&quot;df_na&quot;)</code></pre>
+<pre><code>## Rows: 3 Columns: 2
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (1): y
+## dbl (1): x
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##       x y    
+##   &lt;dbl&gt; &lt;chr&gt;
+## 1     1 a    
+## 2     2 b    
+## 3     3 c</code></pre>
+</div>
+</div>
+<div id="data-with-bad-names" class="section level2">
+<h2>Data with Bad Names</h2>
+<pre class="r"><code>url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/edibnb-badnames.csv&#39;
+edibnb_badnames &lt;- read.csv(url)
+names(edibnb_badnames)</code></pre>
+<pre><code>##  [1] &quot;ID&quot;                   &quot;Price&quot;                &quot;neighbourhood&quot;       
+##  [4] &quot;accommodates&quot;         &quot;Number.of.bathrooms&quot;  &quot;Number.of.Bedrooms&quot;  
+##  [7] &quot;n.beds&quot;               &quot;Review.Scores.Rating&quot; &quot;Number.of.reviews&quot;   
+## [10] &quot;listing_url&quot;</code></pre>
+<p>…but R doesn’t allow spaces in variable names</p>
+<pre class="r"><code>ggplot(edibnb_badnames, aes(x = Number of bathrooms, y = Price)) +
+  geom_point()</code></pre>
+<pre><code>## Error: &lt;text&gt;:1:40: unexpected symbol
+## 1: ggplot(edibnb_badnames, aes(x = Number of
+##                                            ^</code></pre>
+<blockquote>
+<p>We have to find a way to get by this error</p>
+</blockquote>
+<div id="option-1-define-column-names" class="section level3">
+<h3>Option 1: Define Column Names</h3>
+<pre class="r"><code>edibnb_col_names &lt;- read_csv(url,
+                             col_names = c(&quot;id&quot;, &quot;price&quot;, 
+                                           &quot;neighbourhood&quot;, &quot;accommodates&quot;,
+                                           &quot;bathroom&quot;, &quot;bedroom&quot;, 
+                                           &quot;bed&quot;, &quot;review_scores_rating&quot;, 
+                                           &quot;n_reviews&quot;, &quot;url&quot;))</code></pre>
+<pre><code>## Rows: 13246 Columns: 10
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (10): id, price, neighbourhood, accommodates, bathroom, bedroom, bed, re...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>names(edibnb_col_names)</code></pre>
+<pre><code>##  [1] &quot;id&quot;                   &quot;price&quot;                &quot;neighbourhood&quot;       
+##  [4] &quot;accommodates&quot;         &quot;bathroom&quot;             &quot;bedroom&quot;             
+##  [7] &quot;bed&quot;                  &quot;review_scores_rating&quot; &quot;n_reviews&quot;           
+## [10] &quot;url&quot;</code></pre>
+</div>
+<div id="option-2-format-text-to-snake_case" class="section level3">
+<h3>Option 2: Format Text to snake_case</h3>
+<pre class="r"><code>edibnb_clean_names &lt;- read_csv(url) %&gt;%
+  janitor::clean_names()</code></pre>
+<pre><code>## Rows: 13245 Columns: 10
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (2): neighbourhood, listing_url
+## dbl (8): ID, Price, accommodates, Number of bathrooms, Number of Bedrooms, n...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>names(edibnb_clean_names)</code></pre>
+<pre><code>##  [1] &quot;id&quot;                   &quot;price&quot;                &quot;neighbourhood&quot;       
+##  [4] &quot;accommodates&quot;         &quot;number_of_bathrooms&quot;  &quot;number_of_bedrooms&quot;  
+##  [7] &quot;n_beds&quot;               &quot;review_scores_rating&quot; &quot;number_of_reviews&quot;   
+## [10] &quot;listing_url&quot;</code></pre>
+</div>
+</div>
+<div id="variable-types" class="section level2">
+<h2>Variable Types</h2>
+<pre class="r"><code>read.csv(url)</code></pre>
+<div id="option-1-explicit-nas" class="section level3">
+<h3>Option 1: Explicit NAs</h3>
+<pre class="r"><code>url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/df-na.csv&#39;
+df_na &lt;- read.csv(url)
+read_csv(url, 
+         na = c(&quot;&quot;, &quot;NA&quot;, &quot;.&quot;, &quot;9999&quot;, &quot;Not applicable&quot;))</code></pre>
+<pre><code>## Rows: 9 Columns: 3
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (2): y, z
+## dbl (1): x
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## # A tibble: 9 × 3
+##       x y     z     
+##   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+## 1     1 a     hi    
+## 2    NA b     hello 
+## 3     3 &lt;NA&gt;  &lt;NA&gt;  
+## 4     4 d     ola   
+## 5     5 e     hola  
+## 6    NA f     whatup
+## 7     7 g     wassup
+## 8     8 h     sup   
+## 9     9 i     &lt;NA&gt;</code></pre>
+</div>
+<div id="option-2-specify-column-types" class="section level3">
+<h3>Option 2: Specify Column Types</h3>
+<pre class="r"><code>read_csv(url, col_types = list(col_double(), 
+                                            col_character(), 
+                                            col_character()))</code></pre>
+<pre><code>## Warning: One or more parsing issues, see `problems()` for details</code></pre>
+<pre><code>## # A tibble: 9 × 3
+##       x y              z     
+##   &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt; 
+## 1     1 a              hi    
+## 2    NA b              hello 
+## 3     3 Not applicable 9999  
+## 4     4 d              ola   
+## 5     5 e              hola  
+## 6    NA f              whatup
+## 7     7 g              wassup
+## 8     8 h              sup   
+## 9     9 i              &lt;NA&gt;</code></pre>
+</div>
+</div>
+<div id="favorite-foods" class="section level2">
+<h2>Favorite Foods</h2>
+<pre class="r"><code>url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/favourite-food.csv&#39;
+fav_food &lt;- read.csv(url)
+fav_food</code></pre>
+<pre><code>##   Student.ID        Full.Name     favourite.food            mealPlan   AGE
+## 1          1   Sunil Huffmann Strawberry yoghurt          Lunch only     4
+## 2          2     Barclay Lynn       French fries          Lunch only     5
+## 3          3    Jayendra Lyne                N/A Breakfast and lunch     7
+## 4          4     Leon Rossini          Anchovies          Lunch only 99999
+## 5          5 Chidiegwu Dunkel              Pizza Breakfast and lunch  five
+##      SES
+## 1   High
+## 2 Middle
+## 3    Low
+## 4 Middle
+## 5   High</code></pre>
+<div id="variable-names" class="section level3">
+<h3>Variable Names</h3>
+<pre class="r"><code>fav_food &lt;- read.csv(url) %&gt;%
+  janitor::clean_names()
+fav_food</code></pre>
+<pre><code>##   student_id        full_name     favourite_food           meal_plan   age
+## 1          1   Sunil Huffmann Strawberry yoghurt          Lunch only     4
+## 2          2     Barclay Lynn       French fries          Lunch only     5
+## 3          3    Jayendra Lyne                N/A Breakfast and lunch     7
+## 4          4     Leon Rossini          Anchovies          Lunch only 99999
+## 5          5 Chidiegwu Dunkel              Pizza Breakfast and lunch  five
+##      ses
+## 1   High
+## 2 Middle
+## 3    Low
+## 4 Middle
+## 5   High</code></pre>
+</div>
+<div id="handling-nas" class="section level3">
+<h3>Handling NAs</h3>
+<pre class="r"><code>fav_food &lt;- read.csv(url,
+                       na = c(&quot;N/A&quot;, &quot;99999&quot;)) %&gt;%
+  janitor::clean_names()
+fav_food</code></pre>
+<pre><code>##   student_id        full_name     favourite_food           meal_plan  age
+## 1          1   Sunil Huffmann Strawberry yoghurt          Lunch only    4
+## 2          2     Barclay Lynn       French fries          Lunch only    5
+## 3          3    Jayendra Lyne               &lt;NA&gt; Breakfast and lunch    7
+## 4          4     Leon Rossini          Anchovies          Lunch only &lt;NA&gt;
+## 5          5 Chidiegwu Dunkel              Pizza Breakfast and lunch five
+##      ses
+## 1   High
+## 2 Middle
+## 3    Low
+## 4 Middle
+## 5   High</code></pre>
+</div>
+<div id="make-age-numeric" class="section level3">
+<h3>Make <strong>Age</strong> Numeric</h3>
+<pre class="r"><code>fav_food &lt;- fav_food %&gt;%
+  mutate(
+    age = if_else(age == &quot;five&quot;, &quot;5&quot;, age),
+    age = as.numeric(age)
+    )
+glimpse(fav_food)</code></pre>
+<pre><code>## Rows: 5
+## Columns: 6
+## $ student_id     &lt;int&gt; 1, 2, 3, 4, 5
+## $ full_name      &lt;chr&gt; &quot;Sunil Huffmann&quot;, &quot;Barclay Lynn&quot;, &quot;Jayendra Lyne&quot;, &quot;Leo…
+## $ favourite_food &lt;chr&gt; &quot;Strawberry yoghurt&quot;, &quot;French fries&quot;, NA, &quot;Anchovies&quot;, …
+## $ meal_plan      &lt;chr&gt; &quot;Lunch only&quot;, &quot;Lunch only&quot;, &quot;Breakfast and lunch&quot;, &quot;Lun…
+## $ age            &lt;dbl&gt; 4, 5, 7, NA, 5
+## $ ses            &lt;chr&gt; &quot;High&quot;, &quot;Middle&quot;, &quot;Low&quot;, &quot;Middle&quot;, &quot;High&quot;</code></pre>
+</div>
+<div id="socio-economic-status" class="section level3">
+<h3>Socio-economic Status</h3>
+<pre class="r"><code>fav_food %&gt;%
+  count(ses)</code></pre>
+<pre><code>##      ses n
+## 1   High 2
+## 2    Low 1
+## 3 Middle 2</code></pre>
+</div>
+<div id="make-ses-factor" class="section level3">
+<h3>Make <strong>ses</strong> Factor</h3>
+<pre class="r"><code>fav_food &lt;- fav_food %&gt;%
+  mutate(ses = fct_relevel(ses, &quot;Low&quot;, &quot;Middle&quot;, &quot;High&quot;))
+fav_food %&gt;%
+  count(ses)</code></pre>
+<pre><code>##      ses n
+## 1    Low 1
+## 2 Middle 2
+## 3   High 2</code></pre>
+</div>
+</div>
+<div id="putting-it-all-together" class="section level2">
+<h2>Putting it all together</h2>
+<pre class="r"><code>fav_food &lt;- read.csv(url, na = c(&quot;N/A&quot;, &quot;99999&quot;)) %&gt;%
+  janitor::clean_names() %&gt;%
+  mutate(
+    age = if_else(age == &quot;five&quot;, &quot;5&quot;, age), 
+    age = as.numeric(age),
+    ses = fct_relevel(ses, &quot;Low&quot;, &quot;Middle&quot;, &quot;High&quot;)
+  )
+fav_food</code></pre>
+<pre><code>##   student_id        full_name     favourite_food           meal_plan age    ses
+## 1          1   Sunil Huffmann Strawberry yoghurt          Lunch only   4   High
+## 2          2     Barclay Lynn       French fries          Lunch only   5 Middle
+## 3          3    Jayendra Lyne               &lt;NA&gt; Breakfast and lunch   7    Low
+## 4          4     Leon Rossini          Anchovies          Lunch only  NA Middle
+## 5          5 Chidiegwu Dunkel              Pizza Breakfast and lunch   5   High</code></pre>
+</div>
+<div id="out-and-back-in" class="section level2">
+<h2>Out and Back in</h2>
+<pre class="r"><code>url_2 &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/tidyverse/main/fav-food-clean.csv&#39;
+fav_foods_clean &lt;- read.csv(url_2)
+fav_foods_clean</code></pre>
+<pre><code>##   student_id        full_name     favourite_food           meal_plan age    ses
+## 1          1   Sunil Huffmann Strawberry yoghurt          Lunch only   4   High
+## 2          2     Barclay Lynn       French fries          Lunch only   5 Middle
+## 3          3    Jayendra Lyne               &lt;NA&gt; Breakfast and lunch   7    Low
+## 4          4     Leon Rossini          Anchovies          Lunch only  NA Middle
+## 5          5 Chidiegwu Dunkel              Pizza Breakfast and lunch   5   High</code></pre>
+<p>SES</p>
+<pre class="r"><code>fav_foods_clean %&gt;%
+  count(ses)</code></pre>
+<pre><code>##      ses n
+## 1   High 2
+## 2    Low 1
+## 3 Middle 2</code></pre>
+</div>
+<div id="read_rds-and-write_rds" class="section level2">
+<h2>read_rds() and write_rds()</h2>
+<ul>
+<li>CSVs can be unreliable for saving interim results if there is specific variable type information you want to hold on to.</li>
+<li>An alternative is RDS files, you can read and write them with read_rds() and write_rds(), respectively.</li>
+</ul>
+<pre class="r"><code>read_rds(path)
+write_rds(x, path)</code></pre>
+</div>
+</div>
