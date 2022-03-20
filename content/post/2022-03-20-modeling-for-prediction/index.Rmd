@@ -20,7 +20,9 @@ link2 <- url("https://github.com/angelacalicchio/a01-real-estate/tree/main")
 
 # Questions and Answers
 
-> What are the advantages and disadvantages of k-fold cross validation relative to Single Split Validation set approach and LOOCV?
+> **What are the advantages and disadvantages of k-fold cross validation relative to Single Split Validation set approach and LOOCV?**
+
+
 
 Single Split Validation Advantages   
 + Very easy and simple to understand  
@@ -38,7 +40,9 @@ LOOCV Advantages
 LOOCV Disadvantages  
 + Computationally expensive, bad for large datasets  
 
-> Discuss the Pros and Cons to Bootstrapping.
+
+
+> **Discuss the Pros and Cons to Bootstrapping.**
 
 Pros  
 + Good for situations in which the sample size is small and the sampling distribution cannot be assumed as normal  
@@ -49,6 +53,7 @@ Cons
 + Cannot be used if the dataset uses data that cannot be replaced, for example, if the data is a time series, it cannot be observed with replacement  
 + Each bootstrap sample has significant overlap with the original data, which will cause the bootstrap to seriously underestimate the true prediction error   
 + The problem of duplicates and overlaps can be fixed, but then bootstrapping is too complicated  
+
 
 ## Setup
 ```{r}
@@ -113,10 +118,12 @@ lm.fit.poly <- lm(x7~poly(x3,2), data = valuation, subset = train)
 lm.fit.poly
 ```
 
+
 **As we increase the degree of the polynomial to 2, the error decreases**
 ```{r}
 mean((x7 - predict(lm.fit.poly, valuation))[-train]^2)
 ```
+
 
 ### Trying a different polynomial
 ```{r}
@@ -127,6 +134,7 @@ lm.fit.poly.3
 lm.fit.poly.4 <- lm(x7~poly(x3,4), data = valuation, subset = train)
 lm.fit.poly.4
 ```
+
 In this instance it seems that the best polynomial for this specific quadratic equation would be 2, since the values given by 3 and 4 are not great results for the data we are trying to collect 
 
 ## Set a New Seed and Compare
@@ -181,7 +189,7 @@ plot(degree, cv.error, type = "b")
 lines(degree, cv.error.10, type = "b", col = "red")
 ```
 
-### Let's try a different k values
+### Let's try different k values
 ```{r}
 K = 5
 cv.error.5 <- rep(0, 5)
@@ -211,9 +219,13 @@ plot(degree, cv.error, type = "b")
 lines(degree, cv.error.2, type = "b", col = "green")
 ```
 
-> What was learned?
 
-+ The best fit k value in this instance is 10
+
+> **What was learned?**
+
++ The best fit k value in this instance is most likely 10
+
+
 
 ### Trying different degrees
 ```{r}
@@ -248,9 +260,14 @@ for (d in degree){
 cv.error.degree.2
 ```
 
-> What could this mean?
+
+
+> **What could this mean?**
 
 + Perhaps the best k value is 10 and the best degree is 5, for this situation
+
+
+
 
 # Bootstrap Validation
 ```{r}
