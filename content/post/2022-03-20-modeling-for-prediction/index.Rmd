@@ -1,0 +1,291 @@
+---
+title: "Modeling for Prediction"
+author: "R package build"
+date: '2022-03-20'
+slug: modeling-for-prediction
+categories: []
+tags: []
+---
+
+## Using Information from the following website
+
+```{r}
+link <- url("https://archive.ics.uci.edu/ml/datasets/Real+estate+valuation+data+set")
+```
+
+## Github link to dataset
+```{r}
+link2 <- url("https://github.com/angelacalicchio/a01-real-estate/tree/main")
+```
+
+# Questions and Answers
+
+> What are the advantages and disadvantages of k-fold cross validation relative to Single Split Validation set approach and LOOCV?
+
+Single Split Validation Advantages   
++ Very easy and simple to understand  
++ Splits data in a way that is easy to implement  
+
+Single Split Validation Disadvantages  
++ Can create a large error rate depending on location of split  
++ Gives up valuable data, since not all the data will be used  
+
+LOOCV Advantages  
++ Great for small datasets  
++ Contains zero randomness(doesn't generate random numbers)  
++ Diminishes bias, due to using the entire dataset(creates a more accurate average)  
+
+LOOCV Disadvantages  
++ Computationally expensive, bad for large datasets  
+
+> Discuss the Pros and Cons to Bootstrapping.
+
+Pros  
++ Good for situations in which the sample size is small and the sampling distribution cannot be assumed as normal  
++ Good when it is too difficult to work out the standard error of the estimates  
++ Generates samples **with replacement** which imitates parametric approaches in statistics   
+
+Cons   
++ Cannot be used if the dataset uses data that cannot be replaced, for example, if the data is a time series, it cannot be observed with replacement  
++ Each bootstrap sample has significant overlap with the original data, which will cause the bootstrap to seriously underestimate the true prediction error   
++ The problem of duplicates and overlaps can be fixed, but then bootstrapping is too complicated  
+
+## Setup
+```{r}
+library(tidyverse)
+library(boot)
+library(readxl)
+library(emmeans)
+```
+
+## Loading the Data from Excel
+```{r}
+valuation <- read_excel("~/Downloads/Real estate valuation data set.xlsx")
+valuation <- valuation[,-1]
+View(valuation)
+summary(valuation)
+```
+
+# Method 1: Cross Validation
+
+## Set Seed
+```{r}
+# To reproduce the sampling for train - test split
+set.seed(1)
+head(valuation)
+dim(valuation)
+## Create an index to randomly sample 50% records from Auto
+train <- sample(414, 7)
+```
+
+### Rename the Columns for Easier Integration
+```{r}
+colnames(valuation)[colnames(valuation) == "X1 transaction date"] <- "x1"
+colnames(valuation)[colnames(valuation) == "X2 house age"] <- "x2"
+colnames(valuation)[colnames(valuation) == "X3 distance to the nearest MRT station"] <- "x3"
+colnames(valuation)[colnames(valuation) == "X4 number of convenience stores"] <- "x4"
+colnames(valuation)[colnames(valuation) == "X5 latitude"] <- "x5"
+colnames(valuation)[colnames(valuation) == "X6 longitude"] <- "x6"
+colnames(valuation)[colnames(valuation) == "Y house price of unit area"] <- "x7"
+# I had to change "y" to "x7", otherwise it was perceiving it as a date
+```
+
+## Make the variables in Auto dataset as locally accessible objects
+```{r}
+attach(valuation)
+lm.fit <- lm(x7~x3, data = valuation, subset = train)
+lm.fit
+```
+
+## Find the Mean
+```{r}
+mean((x7 - predict(lm.fit, valuation))[-train]^2)
+```
+
+## Plot It
+```{r}
+plot(x7~x3)
+```
+
+## Fit a quadratic function
+```{r}
+lm.fit.poly <- lm(x7~poly(x3,2), data = valuation, subset = train)
+lm.fit.poly
+```
+
+**As we increase the degree of the polynomial to 2, the error decreases**
+```{r}
+mean((x7 - predict(lm.fit.poly, valuation))[-train]^2)
+```
+
+### Trying a different polynomial
+```{r}
+lm.fit.poly.3 <- lm(x7~poly(x3,3), data = valuation, subset = train)
+lm.fit.poly.3
+```
+```{r}
+lm.fit.poly.4 <- lm(x7~poly(x3,4), data = valuation, subset = train)
+lm.fit.poly.4
+```
+In this instance it seems that the best polynomial for this specific quadratic equation would be 2, since the values given by 3 and 4 are not great results for the data we are trying to collect 
+
+## Set a New Seed and Compare
+```{r}
+set.seed(10)
+train <- sample(414, 7)
+lm.fit <- lm(x7~x3, data = valuation, subset = train)
+lm.fit
+lm.fit.poly <- lm(x7~poly(x3,2), data = valuation, subset = train)
+mean((x7 - predict(lm.fit, valuation))[-train]^2)
+mean((x7 - predict(lm.fit.poly, valuation))[-train]^2)
+```
+
+# Method 2: LOO CV: Leave One Out Cross Validation 
+```{r}
+## GLM defaults to lm when passed without any arguments
+glm.fit <- glm(x7~x3, data = valuation)
+coef(glm.fit)
+lm.fit <- lm(x7~x3, data = valuation)
+coef(lm.fit)
+```
+```{r}
+cv.err <- cv.glm(valuation, glm.fit)
+cv.err$delta
+```
+```{r}
+cv.error <- rep(0, 5)
+degree <- 1:5
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error[d] <- cv.glm(valuation, glm.fit)$delta[1]
+}
+cv.error
+```
+```{r}
+plot(degree, cv.error, type = "b")
+```
+
+# K Fold Cross Validation
+```{r}
+K = 10
+cv.error.10 <- rep(0, 5)
+degree <- 1:5
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.10[d] <- cv.glm(valuation, glm.fit, K = K)$delta[1]
+}
+cv.error.10
+```
+```{r}
+plot(degree, cv.error, type = "b")
+lines(degree, cv.error.10, type = "b", col = "red")
+```
+
+### Let's try a different k values
+```{r}
+K = 5
+cv.error.5 <- rep(0, 5)
+degree <- 1:5
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.5[d] <- cv.glm(valuation, glm.fit, K = K)$delta[1]
+}
+cv.error.5
+```
+```{r}
+plot(degree, cv.error, type = "b")
+lines(degree, cv.error.5, type = "b", col = "blue")
+```
+```{r}
+K = 2
+cv.error.2 <- rep(0, 5)
+degree <- 1:5
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.2[d] <- cv.glm(valuation, glm.fit, K = K)$delta[1]
+}
+cv.error.2
+```
+```{r}
+plot(degree, cv.error, type = "b")
+lines(degree, cv.error.2, type = "b", col = "green")
+```
+
+> What was learned?
+
++ The best fit k value in this instance is 10
+
+### Trying different degrees
+```{r}
+cv.error.degree.change <- rep(0, 10)
+degree <- 1:10
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.degree.change[d] <- cv.glm(valuation, glm.fit)$delta[1]
+}
+cv.error.degree.change
+```
+```{r}
+K = 10
+cv.error.degree.10 <- rep(0, 10)
+degree <- 1:10
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.10[d] <- cv.glm(valuation, glm.fit, K = K)$delta[1]
+}
+cv.error.degree.10
+```
+
+#### Let's try a lower degree
+```{r}
+K = 10
+cv.error.degree.2 <- rep(0, 2)
+degree <- 1:2
+for (d in degree){
+  glm.fit <- glm(x7~poly(x3,d), data = valuation)
+  cv.error.2[d] <- cv.glm(valuation, glm.fit, K = K)$delta[1]
+}
+cv.error.degree.2
+```
+
+> What could this mean?
+
++ Perhaps the best k value is 10 and the best degree is 5, for this situation
+
+# Bootstrap Validation
+```{r}
+## Estimation of Accuracy of a Linear Model
+boot.fn <- function(data, index){
+  return(coef(lm(x7~x3, data = data, subset = index)))
+}
+```
+```{r}
+boot.fn(valuation, 1:414)
+```
+```{r}
+set.seed(1)
+boot.fn(valuation, sample(414, 414, replace = T))
+```
+```{r}
+boot.out <- boot(valuation, boot.fn, 1000)
+```
+```{r}
+plot(boot.out)
+```
+
+### Let's see what happens when adding a larger sample size 
+```{r}
+boot.out <- boot(valuation, boot.fn, 10000)
+```
+```{r}
+plot(boot.out)
+```
+
+```{r}
+boot.out <- boot(valuation, boot.fn, 100000)
+```
+```{r}
+plot(boot.out)
+```
+
+The larger the sample size, the more the data resembles a normal distribution. However, in order to generate this large of a sample set, the program needed much more time.
