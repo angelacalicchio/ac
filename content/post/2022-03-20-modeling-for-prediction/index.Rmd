@@ -56,6 +56,7 @@ Cons
 
 
 ## Setup
+
 ```{r}
 library(tidyverse)
 library(boot)
@@ -64,6 +65,7 @@ library(emmeans)
 ```
 
 ## Loading the Data from Excel
+
 ```{r}
 valuation <- read_excel("~/Downloads/Real estate valuation data set.xlsx")
 valuation <- valuation[,-1]
@@ -74,6 +76,7 @@ summary(valuation)
 # Method 1: Cross Validation
 
 ## Set Seed
+
 ```{r}
 # To reproduce the sampling for train - test split
 set.seed(1)
@@ -84,6 +87,7 @@ train <- sample(414, 7)
 ```
 
 ### Rename the Columns for Easier Integration
+
 ```{r}
 colnames(valuation)[colnames(valuation) == "X1 transaction date"] <- "x1"
 colnames(valuation)[colnames(valuation) == "X2 house age"] <- "x2"
@@ -96,6 +100,7 @@ colnames(valuation)[colnames(valuation) == "Y house price of unit area"] <- "x7"
 ```
 
 ## Make the variables in Auto dataset as locally accessible objects
+
 ```{r}
 attach(valuation)
 lm.fit <- lm(x7~x3, data = valuation, subset = train)
@@ -103,16 +108,19 @@ lm.fit
 ```
 
 ## Find the Mean
+
 ```{r}
 mean((x7 - predict(lm.fit, valuation))[-train]^2)
 ```
 
 ## Plot It
+
 ```{r}
 plot(x7~x3)
 ```
 
 ## Fit a quadratic function
+
 ```{r}
 lm.fit.poly <- lm(x7~poly(x3,2), data = valuation, subset = train)
 lm.fit.poly
@@ -120,12 +128,14 @@ lm.fit.poly
 
 
 **As we increase the degree of the polynomial to 2, the error decreases**
+
 ```{r}
 mean((x7 - predict(lm.fit.poly, valuation))[-train]^2)
 ```
 
 
 ### Trying a different polynomial
+
 ```{r}
 lm.fit.poly.3 <- lm(x7~poly(x3,3), data = valuation, subset = train)
 lm.fit.poly.3
@@ -138,6 +148,7 @@ lm.fit.poly.4
 In this instance it seems that the best polynomial for this specific quadratic equation would be 2, since the values given by 3 and 4 are not great results for the data we are trying to collect 
 
 ## Set a New Seed and Compare
+
 ```{r}
 set.seed(10)
 train <- sample(414, 7)
@@ -149,6 +160,7 @@ mean((x7 - predict(lm.fit.poly, valuation))[-train]^2)
 ```
 
 # Method 2: LOO CV: Leave One Out Cross Validation 
+
 ```{r}
 ## GLM defaults to lm when passed without any arguments
 glm.fit <- glm(x7~x3, data = valuation)
@@ -174,6 +186,7 @@ plot(degree, cv.error, type = "b")
 ```
 
 # K Fold Cross Validation
+
 ```{r}
 K = 10
 cv.error.10 <- rep(0, 5)
@@ -190,6 +203,7 @@ lines(degree, cv.error.10, type = "b", col = "red")
 ```
 
 ### Let's try different k values
+
 ```{r}
 K = 5
 cv.error.5 <- rep(0, 5)
@@ -228,6 +242,7 @@ lines(degree, cv.error.2, type = "b", col = "green")
 
 
 ### Trying different degrees
+
 ```{r}
 cv.error.degree.change <- rep(0, 10)
 degree <- 1:10
@@ -249,6 +264,7 @@ cv.error.degree.10
 ```
 
 #### Let's try a lower degree
+
 ```{r}
 K = 10
 cv.error.degree.2 <- rep(0, 2)
@@ -270,6 +286,7 @@ cv.error.degree.2
 
 
 # Bootstrap Validation
+
 ```{r}
 ## Estimation of Accuracy of a Linear Model
 boot.fn <- function(data, index){
@@ -291,6 +308,7 @@ plot(boot.out)
 ```
 
 ### Let's see what happens when adding a larger sample size 
+
 ```{r}
 boot.out <- boot(valuation, boot.fn, 10000)
 ```

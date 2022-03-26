@@ -1,0 +1,422 @@
+---
+title: "Exploratory Data Analysis"
+author: "R package build"
+date: '2022-03-26'
+slug: exploratory-data-analysis
+categories: []
+tags: []
+---
+
+# Loading and Preparing the Data 
+```{r}
+# Install and Load Packages
+if(!require("pacman")) install.packages("pacman")
+
+pacman::p_load(pacman, magrittr, productplots, psych, RColorBrewer, tidyverse)
+```
+
+## "happy" dataset from productplots package
+```{r}
+?happy
+names(happy)
+```
+
+## Save dataset to tibble named "df" (for "dataframe")
+```{r}
+df <- happy %>%
+  as_tibble() %>%
+  print()
+```
+
+## Delete id and wtssall, which is a weighting variable that doesn't change results appreciably 
+```{r}
+df %<>%
+  select(happy:health) %>%
+  print()
+```
+
+# Check levels of "happy"
+```{r}
+levels(df$happy)
+```
+
+## Reverse level of "happy" so "very happy" is at the top of stacked bar charts 
+```{r}
+df %<>%
+  mutate(happy = fct_rev(happy))
+
+levels(df$happy)
+```
+
+# Visual Exploration 
+
+## Bar Charts of Happy 
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(happy, fill = happy)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+### Frequencies of Happy
+```{r}
+df %>% count(happy)
+```
+
+## Filter out the NA responses on happy
+```{r}
+df %<>%
+  filter(!is.na(happy))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(happy, fill = happy)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+### Frequencies for happy 
+```{r}
+df %>% count(happy)
+```
+
+# Happiness and Gender 
+
+## Bar chart of sex
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(sex, fill = sex)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = "none")
+```
+
+### Frequencies for sex
+```{r}
+df %>% count(sex)
+```
+
+### 100% stacked bar chart
+```{r}
+df %>%
+  ggplot(aes(sex, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+# Happiness and Marital Status
+
+## Bar chart of marital status
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(marital, fill = marital)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = "none")
+```
+
+### Frequencies for Marital
+```{r}
+df %>% count(marital)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(marital)) %>%
+  ggplot(aes(marital, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+### Create dichotmous married/not married variable
+```{r}
+df %<>%
+  mutate(
+    married = ifelse(
+      marital == "married",
+      "yes",
+      "no")
+  ) %>%
+  mutate(married = as.factor(married)) %>%
+ print()
+```
+
+### Frequencies for married 
+```{r}
+df %>% count(married)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(married)) %>%
+  ggplot(aes(married, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+# Happiness and Level of Education
+
+## Bar chart of degree
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(degree, fill = degree)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = "none")
+```
+
+### Frequencies of degree
+```{r}
+df %>% count(degree)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(degree)) %>%
+  ggplot(aes(degree, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+### Create dichotomous college/not variable for exploration
+```{r}
+df %<>%
+  mutate(
+    college = ifelse(
+      degree %in%
+      c("junior college",
+        "bachelor",
+        "graduate"),
+      "yes", "no")
+  ) %>%
+  print()
+```
+
+### Frequencies of college
+```{r}
+df %>% count(college)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  ggplot(aes(college, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+# Happiness and Financial Status
+
+## Bar chart of finrela
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(finrela, fill = finrela)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = "none")
+```
+
+### Frequencies for finrela
+```{r}
+df %>% count(finrela)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(finrela)) %>%
+  ggplot(aes(finrela, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+### Create dichotomous varible for average finances or higher
+```{r}
+df %<>%
+  mutate(
+    avg_fin = case_when(
+      finrela %in%
+        c("far below average",
+          "below average") ~
+          "no",
+      finrela %in%
+        c("average",
+          "above average",
+          "far above average") ~
+          "yes",
+      finrela == "NA" ~ "NA")
+  ) %>%
+  print()
+```
+
+### Get frequencies
+```{r}
+df %>% count(avg_fin)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(avg_fin)) %>%
+  ggplot(aes(avg_fin, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+# Happiness and Health
+
+## Bar chart of health
+```{r}
+df %>%
+  ggplot() + 
+  geom_bar(aes(health, fill = health)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = "none")
+```
+
+### Frequencies of health
+```{r}
+df %>% count(health)
+```
+
+## 100% stacked bar chart
+```{r}
+df %>%
+  filter(!is.na(health)) %>%
+  ggplot(aes(health, fill = happy)) + 
+  geom_bar(position = "fill")
+```
+
+# Happiness and Year of Survey
+
+## Histogram of year
+```{r}
+df %>% qplot(year, binwidth = 5, data = .)
+```
+
+### Descriptive statistics for year
+```{r}
+df %>% select(year) %>% summary()
+``` 
+
+## Density plots of year by group
+```{r}
+df%>%
+  ggplot(aes(x = year, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = "none") 
+```
+## Boxplots of year by group
+```{r}
+df %>%
+  ggplot(aes(x = happy, 
+    y = year, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab("") +
+  theme(legend.position = "none")
+```
+
+# Happiness and Age
+
+## Histogram of age
+```{r}
+df %>% qplot(age, binwidth = 5, data = .)
+```
+
+### Descriptive statistics for age
+```{r}
+df %>% select(age) %>% summary()
+```
+
+## Density plots of age by group
+```{r}
+df %>%
+  ggplot(aes(x = age, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = "none")  
+```
+
+# Boxplots of age by group
+```{r}
+df %>%
+  ggplot(aes(x = happy, 
+    y = age, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab("") +
+  theme(legend.position = "none")
+```
+
+# Happiness and Year Born
+
+### Calculate year of birth
+```{r}
+df %<>%
+  mutate(born = year - age)
+```
+
+## Histogram of born
+```{r}
+df %>% qplot(born, binwidth = 5, data = .)
+```
+
+### Descriptive statistics for born
+```{r}
+df %>% select(born) %>% summary()
+```
+
+## Density plots of born by group
+```{r}
+df %>%
+  ggplot(aes(x = born, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = "none") 
+```
+## Boxplots of born by group
+```{r}
+df %>%
+  ggplot(aes(x = happy, 
+    y = born, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab("") +
+  theme(legend.position = "none")
+```
+
+# Clean Up
+
+## Clear data
+```{r} 
+rm(list = ls()) 
+```
+
+## Clear packages
+```{r}
+detach("package:datasets", unload = T) 
+
+p_unload(all)  # Remove all contributed packages
+```
+
+## Clear plots
+```{r}
+graphics.off()  
+```
+
+## Clear console
+```{r}
+cat("\014")  # Mimics ctrl+L
+```

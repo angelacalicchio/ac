@@ -1,0 +1,583 @@
+---
+title: "Exploratory Data Analysis"
+author: "R package build"
+date: '2022-03-26'
+slug: exploratory-data-analysis
+categories: []
+tags: []
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="loading-and-preparing-the-data" class="section level1">
+<h1>Loading and Preparing the Data</h1>
+<pre class="r"><code># Install and Load Packages
+if(!require(&quot;pacman&quot;)) install.packages(&quot;pacman&quot;)</code></pre>
+<pre><code>## Loading required package: pacman</code></pre>
+<pre class="r"><code>pacman::p_load(pacman, magrittr, productplots, psych, RColorBrewer, tidyverse)</code></pre>
+<div id="happy-dataset-from-productplots-package" class="section level2">
+<h2>“happy” dataset from productplots package</h2>
+<pre class="r"><code>?happy
+names(happy)</code></pre>
+<pre><code>##  [1] &quot;id&quot;      &quot;happy&quot;   &quot;year&quot;    &quot;age&quot;     &quot;sex&quot;     &quot;marital&quot; &quot;degree&quot; 
+##  [8] &quot;finrela&quot; &quot;health&quot;  &quot;wtssall&quot;</code></pre>
+</div>
+<div id="save-dataset-to-tibble-named-df-for-dataframe" class="section level2">
+<h2>Save dataset to tibble named “df” (for “dataframe”)</h2>
+<pre class="r"><code>df &lt;- happy %&gt;%
+  as_tibble() %&gt;%
+  print()</code></pre>
+<pre><code>## # A tibble: 51,020 × 10
+##       id happy          year   age sex    marital  degree finrela health wtssall
+##    &lt;dbl&gt; &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;  &lt;fct&gt;    &lt;fct&gt;  &lt;fct&gt;   &lt;fct&gt;    &lt;dbl&gt;
+##  1     1 not too happy  1972    23 female never m… bache… average good     0.445
+##  2     2 not too happy  1972    70 male   married  lt hi… above … fair     0.889
+##  3     3 pretty happy   1972    48 female married  high … average excel…   0.889
+##  4     4 not too happy  1972    27 female married  bache… average good     0.889
+##  5     5 pretty happy   1972    61 female married  high … above … good     0.889
+##  6     6 pretty happy   1972    26 male   never m… high … above … good     0.445
+##  7     7 not too happy  1972    28 male   divorced high … above … excel…   0.445
+##  8     8 not too happy  1972    27 male   never m… bache… average good     0.445
+##  9     9 pretty happy   1972    21 female never m… high … average excel…   0.445
+## 10    10 pretty happy   1972    30 female married  high … below … fair     0.889
+## # … with 51,010 more rows</code></pre>
+</div>
+<div id="delete-id-and-wtssall-which-is-a-weighting-variable-that-doesnt-change-results-appreciably" class="section level2">
+<h2>Delete id and wtssall, which is a weighting variable that doesn’t change results appreciably</h2>
+<pre class="r"><code>df %&lt;&gt;%
+  select(happy:health) %&gt;%
+  print()</code></pre>
+<pre><code>## # A tibble: 51,020 × 8
+##    happy          year   age sex    marital       degree         finrela  health
+##    &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;  &lt;fct&gt;         &lt;fct&gt;          &lt;fct&gt;    &lt;fct&gt; 
+##  1 not too happy  1972    23 female never married bachelor       average  good  
+##  2 not too happy  1972    70 male   married       lt high school above a… fair  
+##  3 pretty happy   1972    48 female married       high school    average  excel…
+##  4 not too happy  1972    27 female married       bachelor       average  good  
+##  5 pretty happy   1972    61 female married       high school    above a… good  
+##  6 pretty happy   1972    26 male   never married high school    above a… good  
+##  7 not too happy  1972    28 male   divorced      high school    above a… excel…
+##  8 not too happy  1972    27 male   never married bachelor       average  good  
+##  9 pretty happy   1972    21 female never married high school    average  excel…
+## 10 pretty happy   1972    30 female married       high school    below a… fair  
+## # … with 51,010 more rows</code></pre>
+</div>
+</div>
+<div id="check-levels-of-happy" class="section level1">
+<h1>Check levels of “happy”</h1>
+<pre class="r"><code>levels(df$happy)</code></pre>
+<pre><code>## [1] &quot;not too happy&quot; &quot;pretty happy&quot;  &quot;very happy&quot;</code></pre>
+<div id="reverse-level-of-happy-so-very-happy-is-at-the-top-of-stacked-bar-charts" class="section level2">
+<h2>Reverse level of “happy” so “very happy” is at the top of stacked bar charts</h2>
+<pre class="r"><code>df %&lt;&gt;%
+  mutate(happy = fct_rev(happy))
+
+levels(df$happy)</code></pre>
+<pre><code>## [1] &quot;very happy&quot;    &quot;pretty happy&quot;  &quot;not too happy&quot;</code></pre>
+</div>
+</div>
+<div id="visual-exploration" class="section level1">
+<h1>Visual Exploration</h1>
+<div id="bar-charts-of-happy" class="section level2">
+<h2>Bar Charts of Happy</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(happy, fill = happy)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<div id="frequencies-of-happy" class="section level3">
+<h3>Frequencies of Happy</h3>
+<pre class="r"><code>df %&gt;% count(happy)</code></pre>
+<pre><code>## # A tibble: 4 × 2
+##   happy             n
+##   &lt;fct&gt;         &lt;int&gt;
+## 1 very happy    14800
+## 2 pretty happy  25874
+## 3 not too happy  5629
+## 4 &lt;NA&gt;           4717</code></pre>
+</div>
+</div>
+<div id="filter-out-the-na-responses-on-happy" class="section level2">
+<h2>Filter out the NA responses on happy</h2>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(happy))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(happy, fill = happy)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<div id="frequencies-for-happy" class="section level3">
+<h3>Frequencies for happy</h3>
+<pre class="r"><code>df %&gt;% count(happy)</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##   happy             n
+##   &lt;fct&gt;         &lt;int&gt;
+## 1 very happy    14800
+## 2 pretty happy  25874
+## 3 not too happy  5629</code></pre>
+</div>
+</div>
+</div>
+<div id="happiness-and-gender" class="section level1">
+<h1>Happiness and Gender</h1>
+<div id="bar-chart-of-sex" class="section level2">
+<h2>Bar chart of sex</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(sex, fill = sex)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<div id="frequencies-for-sex" class="section level3">
+<h3>Frequencies for sex</h3>
+<pre class="r"><code>df %&gt;% count(sex)</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   sex        n
+##   &lt;fct&gt;  &lt;int&gt;
+## 1 male   20357
+## 2 female 25946</code></pre>
+</div>
+<div id="stacked-bar-chart" class="section level3">
+<h3>100% stacked bar chart</h3>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(sex, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="happiness-and-marital-status" class="section level1">
+<h1>Happiness and Marital Status</h1>
+<div id="bar-chart-of-marital-status" class="section level2">
+<h2>Bar chart of marital status</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(marital, fill = marital)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<div id="frequencies-for-marital" class="section level3">
+<h3>Frequencies for Marital</h3>
+<pre class="r"><code>df %&gt;% count(marital)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   marital           n
+##   &lt;fct&gt;         &lt;int&gt;
+## 1 married       25662
+## 2 never married  8979
+## 3 divorced       5385
+## 4 widowed        4652
+## 5 separated      1618
+## 6 &lt;NA&gt;              7</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-1" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(marital)) %&gt;%
+  ggplot(aes(marital, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<div id="create-dichotmous-marriednot-married-variable" class="section level3">
+<h3>Create dichotmous married/not married variable</h3>
+<pre class="r"><code>df %&lt;&gt;%
+  mutate(
+    married = ifelse(
+      marital == &quot;married&quot;,
+      &quot;yes&quot;,
+      &quot;no&quot;)
+  ) %&gt;%
+  mutate(married = as.factor(married)) %&gt;%
+ print()</code></pre>
+<pre><code>## # A tibble: 46,303 × 9
+##    happy          year   age sex    marital       degree  finrela health married
+##    &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;  &lt;fct&gt;         &lt;fct&gt;   &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;  
+##  1 not too happy  1972    23 female never married bachel… average good   no     
+##  2 not too happy  1972    70 male   married       lt hig… above … fair   yes    
+##  3 pretty happy   1972    48 female married       high s… average excel… yes    
+##  4 not too happy  1972    27 female married       bachel… average good   yes    
+##  5 pretty happy   1972    61 female married       high s… above … good   yes    
+##  6 pretty happy   1972    26 male   never married high s… above … good   no     
+##  7 not too happy  1972    28 male   divorced      high s… above … excel… no     
+##  8 not too happy  1972    27 male   never married bachel… average good   no     
+##  9 pretty happy   1972    21 female never married high s… average excel… no     
+## 10 pretty happy   1972    30 female married       high s… below … fair   yes    
+## # … with 46,293 more rows</code></pre>
+</div>
+<div id="frequencies-for-married" class="section level3">
+<h3>Frequencies for married</h3>
+<pre class="r"><code>df %&gt;% count(married)</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##   married     n
+##   &lt;fct&gt;   &lt;int&gt;
+## 1 no      20634
+## 2 yes     25662
+## 3 &lt;NA&gt;        7</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-2" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(married)) %&gt;%
+  ggplot(aes(married, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
+</div>
+<div id="happiness-and-level-of-education" class="section level1">
+<h1>Happiness and Level of Education</h1>
+<div id="bar-chart-of-degree" class="section level2">
+<h2>Bar chart of degree</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(degree, fill = degree)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<div id="frequencies-of-degree" class="section level3">
+<h3>Frequencies of degree</h3>
+<pre class="r"><code>df %&gt;% count(degree)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   degree             n
+##   &lt;fct&gt;          &lt;int&gt;
+## 1 lt high school 11053
+## 2 high school    23880
+## 3 junior college  2252
+## 4 bachelor        6134
+## 5 graduate        2840
+## 6 &lt;NA&gt;             144</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-3" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(degree)) %&gt;%
+  ggplot(aes(degree, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<div id="create-dichotomous-collegenot-variable-for-exploration" class="section level3">
+<h3>Create dichotomous college/not variable for exploration</h3>
+<pre class="r"><code>df %&lt;&gt;%
+  mutate(
+    college = ifelse(
+      degree %in%
+      c(&quot;junior college&quot;,
+        &quot;bachelor&quot;,
+        &quot;graduate&quot;),
+      &quot;yes&quot;, &quot;no&quot;)
+  ) %&gt;%
+  print()</code></pre>
+<pre><code>## # A tibble: 46,303 × 10
+##    happy          year   age sex   marital degree finrela health married college
+##    &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;   &lt;chr&gt;  
+##  1 not too happy  1972    23 fema… never … bache… average good   no      yes    
+##  2 not too happy  1972    70 male  married lt hi… above … fair   yes     no     
+##  3 pretty happy   1972    48 fema… married high … average excel… yes     no     
+##  4 not too happy  1972    27 fema… married bache… average good   yes     yes    
+##  5 pretty happy   1972    61 fema… married high … above … good   yes     no     
+##  6 pretty happy   1972    26 male  never … high … above … good   no      no     
+##  7 not too happy  1972    28 male  divorc… high … above … excel… no      no     
+##  8 not too happy  1972    27 male  never … bache… average good   no      yes    
+##  9 pretty happy   1972    21 fema… never … high … average excel… no      no     
+## 10 pretty happy   1972    30 fema… married high … below … fair   yes     no     
+## # … with 46,293 more rows</code></pre>
+</div>
+<div id="frequencies-of-college" class="section level3">
+<h3>Frequencies of college</h3>
+<pre class="r"><code>df %&gt;% count(college)</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   college     n
+##   &lt;chr&gt;   &lt;int&gt;
+## 1 no      35077
+## 2 yes     11226</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-4" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(college, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+</div>
+</div>
+<div id="happiness-and-financial-status" class="section level1">
+<h1>Happiness and Financial Status</h1>
+<div id="bar-chart-of-finrela" class="section level2">
+<h2>Bar chart of finrela</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(finrela, fill = finrela)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<div id="frequencies-for-finrela" class="section level3">
+<h3>Frequencies for finrela</h3>
+<pre class="r"><code>df %&gt;% count(finrela)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   finrela               n
+##   &lt;fct&gt;             &lt;int&gt;
+## 1 far below average  2408
+## 2 below average     10824
+## 3 average           23241
+## 4 above average      8482
+## 5 far above average   887
+## 6 &lt;NA&gt;                461</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-5" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(finrela)) %&gt;%
+  ggplot(aes(finrela, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<div id="create-dichotomous-varible-for-average-finances-or-higher" class="section level3">
+<h3>Create dichotomous varible for average finances or higher</h3>
+<pre class="r"><code>df %&lt;&gt;%
+  mutate(
+    avg_fin = case_when(
+      finrela %in%
+        c(&quot;far below average&quot;,
+          &quot;below average&quot;) ~
+          &quot;no&quot;,
+      finrela %in%
+        c(&quot;average&quot;,
+          &quot;above average&quot;,
+          &quot;far above average&quot;) ~
+          &quot;yes&quot;,
+      finrela == &quot;NA&quot; ~ &quot;NA&quot;)
+  ) %&gt;%
+  print()</code></pre>
+<pre><code>## # A tibble: 46,303 × 11
+##    happy  year   age sex   marital degree finrela health married college avg_fin
+##    &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;   &lt;chr&gt;   &lt;chr&gt;  
+##  1 not …  1972    23 fema… never … bache… average good   no      yes     yes    
+##  2 not …  1972    70 male  married lt hi… above … fair   yes     no      yes    
+##  3 pret…  1972    48 fema… married high … average excel… yes     no      yes    
+##  4 not …  1972    27 fema… married bache… average good   yes     yes     yes    
+##  5 pret…  1972    61 fema… married high … above … good   yes     no      yes    
+##  6 pret…  1972    26 male  never … high … above … good   no      no      yes    
+##  7 not …  1972    28 male  divorc… high … above … excel… no      no      yes    
+##  8 not …  1972    27 male  never … bache… average good   no      yes     yes    
+##  9 pret…  1972    21 fema… never … high … average excel… no      no      yes    
+## 10 pret…  1972    30 fema… married high … below … fair   yes     no      no     
+## # … with 46,293 more rows</code></pre>
+</div>
+<div id="get-frequencies" class="section level3">
+<h3>Get frequencies</h3>
+<pre class="r"><code>df %&gt;% count(avg_fin)</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##   avg_fin     n
+##   &lt;chr&gt;   &lt;int&gt;
+## 1 no      13232
+## 2 yes     32610
+## 3 &lt;NA&gt;      461</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-6" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(avg_fin)) %&gt;%
+  ggplot(aes(avg_fin, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+</div>
+</div>
+<div id="happiness-and-health" class="section level1">
+<h1>Happiness and Health</h1>
+<div id="bar-chart-of-health" class="section level2">
+<h2>Bar chart of health</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot() + 
+  geom_bar(aes(health, fill = health)) + 
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<div id="frequencies-of-health" class="section level3">
+<h3>Frequencies of health</h3>
+<pre class="r"><code>df %&gt;% count(health)</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   health        n
+##   &lt;fct&gt;     &lt;int&gt;
+## 1 poor       1996
+## 2 fair       6585
+## 3 good      15791
+## 4 excellent 11022
+## 5 &lt;NA&gt;      10909</code></pre>
+</div>
+</div>
+<div id="stacked-bar-chart-7" class="section level2">
+<h2>100% stacked bar chart</h2>
+<pre class="r"><code>df %&gt;%
+  filter(!is.na(health)) %&gt;%
+  ggplot(aes(health, fill = happy)) + 
+  geom_bar(position = &quot;fill&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+</div>
+</div>
+<div id="happiness-and-year-of-survey" class="section level1">
+<h1>Happiness and Year of Survey</h1>
+<div id="histogram-of-year" class="section level2">
+<h2>Histogram of year</h2>
+<pre class="r"><code>df %&gt;% qplot(year, binwidth = 5, data = .)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<div id="descriptive-statistics-for-year" class="section level3">
+<h3>Descriptive statistics for year</h3>
+<pre class="r"><code>df %&gt;% select(year) %&gt;% summary()</code></pre>
+<pre><code>##       year     
+##  Min.   :1972  
+##  1st Qu.:1980  
+##  Median :1988  
+##  Mean   :1989  
+##  3rd Qu.:1996  
+##  Max.   :2006</code></pre>
+</div>
+</div>
+<div id="density-plots-of-year-by-group" class="section level2">
+<h2>Density plots of year by group</h2>
+<pre class="r"><code>df%&gt;%
+  ggplot(aes(x = year, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = &quot;none&quot;) </code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-37-1.png" width="672" />
+## Boxplots of year by group</p>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = happy, 
+    y = year, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab(&quot;&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+</div>
+</div>
+<div id="happiness-and-age" class="section level1">
+<h1>Happiness and Age</h1>
+<div id="histogram-of-age" class="section level2">
+<h2>Histogram of age</h2>
+<pre class="r"><code>df %&gt;% qplot(age, binwidth = 5, data = .)</code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<div id="descriptive-statistics-for-age" class="section level3">
+<h3>Descriptive statistics for age</h3>
+<pre class="r"><code>df %&gt;% select(age) %&gt;% summary()</code></pre>
+<pre><code>##       age       
+##  Min.   :18.00  
+##  1st Qu.:31.00  
+##  Median :42.00  
+##  Mean   :45.33  
+##  3rd Qu.:58.00  
+##  Max.   :89.00  
+##  NA&#39;s   :150</code></pre>
+</div>
+</div>
+<div id="density-plots-of-age-by-group" class="section level2">
+<h2>Density plots of age by group</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = age, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = &quot;none&quot;)  </code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_density).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+</div>
+</div>
+<div id="boxplots-of-age-by-group" class="section level1">
+<h1>Boxplots of age by group</h1>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = happy, 
+    y = age, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab(&quot;&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+</div>
+<div id="happiness-and-year-born" class="section level1">
+<h1>Happiness and Year Born</h1>
+<div id="calculate-year-of-birth" class="section level3">
+<h3>Calculate year of birth</h3>
+<pre class="r"><code>df %&lt;&gt;%
+  mutate(born = year - age)</code></pre>
+</div>
+<div id="histogram-of-born" class="section level2">
+<h2>Histogram of born</h2>
+<pre class="r"><code>df %&gt;% qplot(born, binwidth = 5, data = .)</code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<div id="descriptive-statistics-for-born" class="section level3">
+<h3>Descriptive statistics for born</h3>
+<pre class="r"><code>df %&gt;% select(born) %&gt;% summary()</code></pre>
+<pre><code>##       born     
+##  Min.   :1883  
+##  1st Qu.:1928  
+##  Median :1946  
+##  Mean   :1943  
+##  3rd Qu.:1958  
+##  Max.   :1988  
+##  NA&#39;s   :150</code></pre>
+</div>
+</div>
+<div id="density-plots-of-born-by-group" class="section level2">
+<h2>Density plots of born by group</h2>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = born, 
+    fill = happy)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(happy ~ .) +  # facet_grid
+  theme(legend.position = &quot;none&quot;) </code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_density).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-46-1.png" width="672" />
+## Boxplots of born by group</p>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = happy, 
+    y = born, 
+    fill = happy)) + 
+  geom_boxplot() +
+  coord_flip() +
+  xlab(&quot;&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<pre><code>## Warning: Removed 150 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+</div>
+</div>
+<div id="clean-up" class="section level1">
+<h1>Clean Up</h1>
+<div id="clear-data" class="section level2">
+<h2>Clear data</h2>
+<pre class="r"><code>rm(list = ls()) </code></pre>
+</div>
+<div id="clear-packages" class="section level2">
+<h2>Clear packages</h2>
+<pre class="r"><code>detach(&quot;package:datasets&quot;, unload = T) 
+
+p_unload(all)  # Remove all contributed packages</code></pre>
+<pre><code>## The following packages have been unloaded:
+## forcats, stringr, dplyr, purrr, readr, tidyr, tibble, ggplot2, tidyverse, RColorBrewer, psych, productplots, magrittr, pacman</code></pre>
+</div>
+<div id="clear-plots" class="section level2">
+<h2>Clear plots</h2>
+<pre class="r"><code>graphics.off()  </code></pre>
+</div>
+<div id="clear-console" class="section level2">
+<h2>Clear console</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)  # Mimics ctrl+L</code></pre>
+<div style="page-break-after: always;"></div>
+</div>
+</div>
