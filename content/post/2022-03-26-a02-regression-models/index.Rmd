@@ -1,0 +1,472 @@
+---
+title: 'A02: Regression Models'
+author: "R package build"
+date: '2022-03-26'
+slug: a02-regression-models
+categories: []
+tags: []
+---
+
+# Link to Git Repository Excel File and CSV file 
+```{r, link_to_github}
+link <- url("https://github.com/angelacalicchio/a02-diamonds/tree/main")
+```
+
+# Load and Prepare Data and Packages
+```{r, setup}
+pacman::p_load(pacman, magrittr, productplots, psych, RColorBrewer, tidyverse)
+
+url <- 'https://raw.githubusercontent.com/angelacalicchio/a02-diamonds/main/Professor_Proposes_Data.csv'
+diamond_selection <- read_csv(url)
+
+View(diamond_selection)
+```
+
+> **IMPORTANT**
+> When viewing the excel file that was uploaded to rstudio, I noticed that price was being percieved as a date. In order to combat this, I converted to excel file to a csv file and uploaded that data to github, then used the raw data to upload it back to rstudio. (Both the excel file and csv file can be viewed from the link above)
+
+# Save dataset to tibble named "df" (for "dataframe")
+```{r}
+df <- diamond_selection %>%
+  as_tibble() %>%
+  print()
+```
+
+# Data Visualization 
+
+## Categorical Variables 
+
+### Color
+
+#### Creating a Bar Chart looking at Color
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Colour, fill = Colour)) +
+  scale_fill_manual(values = c("D" = "#F8766D",
+                               "E" = "#F8766D",
+                               "F" = "#F8766D",
+                               "G" = "#00BFC4",
+                               "H" = "#00BFC4",
+                               "I" = "#00BFC4",
+                               "J" = "#C77CFF",
+                               "K" = "#C77CFF",
+                               "L" = "#C77CFF",
+                               "NA" = "black"))
+```
+
+#### Removing NAs from Colour
+```{r}
+df %<>%
+  filter(!is.na(Colour))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Colour, fill = Colour)) +
+  scale_fill_manual(values = c("D" = "#F8766D",
+                               "E" = "#F8766D",
+                               "F" = "#F8766D",
+                               "G" = "#00BFC4",
+                               "H" = "#00BFC4",
+                               "I" = "#00BFC4",
+                               "J" = "#C77CFF",
+                               "K" = "#C77CFF",
+                               "L" = "#C77CFF",
+                               "NA" = "black")) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies for Color
+```{r}
+df %>% count(Colour)
+```
+
+### Clarity 
+
+#### Creating a Bar Chart looking at Clarity
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Clarity, fill = Clarity)) +
+  scale_fill_manual(values = c("I1" = "#F8766D",
+                               "I2" = "#F8766D",
+                               "SI1" = "#7CAE00",
+                               "SI2" = "#7CAE00",
+                               "SI3" = "#7CAE00",
+                               "VS1" = "#00BFC4",
+                               "VS2" = "#00BFC4",
+                               "VVS1" = "#C77CFF",
+                               "VVS2" = "#C77CFF",
+                               "NA" = "black"))
+```
+
+#### Removing NAs from Clarity 
+```{r}
+df %<>%
+  filter(!is.na(Clarity))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Clarity, fill = Clarity)) +
+  scale_fill_manual(values = c("I1" = "#F8766D",
+                               "I2" = "#F8766D",
+                               "SI1" = "#7CAE00",
+                               "SI2" = "#7CAE00",
+                               "SI3" = "#7CAE00",
+                               "VS1" = "#00BFC4",
+                               "VS2" = "#00BFC4",
+                               "VVS1" = "#C77CFF",
+                               "VVS2" = "#C77CFF",
+                               "NA" = "black")) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies for Clarity
+```{r}
+df %>% count(Clarity)
+```
+
+### Cut 
+
+#### Creating a Bar Chart looking at Cut
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Cut, fill = Cut))
+```
+
+#### Removing NAs from Cut
+```{r}
+df %<>%
+  filter(!is.na(Clarity))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Clarity, fill = Clarity)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies in Cut
+```{r}
+df %>% count(Cut)
+```
+
+### Certification 
+
+#### Creating a Bar Chart looking at Certification
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Certification, fill = Certification))
+```
+
+#### Removing NAs
+```{r}
+df %<>%
+  filter(!is.na(Certification))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Certification, fill = Certification)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies in Certification
+```{r}
+df %>% count(Certification)
+```
+
+### Polish 
+
+#### Creating a Bar Chart looking at Polish
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Polish, fill = Polish))
+```
+
+#### Removing NAs 
+```{r}
+df %<>%
+  filter(!is.na(Polish))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Polish, fill = Polish)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies in Polish
+```{r}
+df %>% count(Polish)
+```
+
+### Symmetry 
+
+#### Creating a Bar Chart looking at Symmetry
+```{r}
+ggplot(diamond_selection) +
+  geom_bar(aes(x = Symmetry, fill = Symmetry))
+```
+
+#### Removing NAs
+```{r}
+df %<>%
+  filter(!is.na(Symmetry))
+
+df %>%
+  ggplot() + 
+  geom_bar(aes(Symmetry, fill = Symmetry)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none")
+```
+
+#### Frequencies in Symmetry
+```{r}
+df %>% count(Symmetry)
+```
+
+## Continuous Variables 
+
+### Carat
+
+#### Creating a Histogram for Carat
+```{r}
+ggplot(diamond_selection) +
+  geom_histogram(aes(x = Carat), binwidth = 0.1)
+```
+
+# Bootstrapping the data
+
+## Preparing the data for bootstrapping
+```{r}
+library(boot)
+library(patchwork)
+```
+
+```{r}
+summary(df)
+```
+
+## Plotting Everything Side-by-Side
+```{r}
+df %>% count(Colour)
+color <- df %>%
+  ggplot() +
+  geom_bar(aes(Colour, fill = Colour)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Color") +
+  scale_fill_manual(values = c("D" = "#F8766D",
+                               "E" = "#F8766D",
+                               "F" = "#F8766D",
+                               "G" = "#00BFC4",
+                               "H" = "#00BFC4",
+                               "I" = "#00BFC4",
+                               "J" = "#C77CFF",
+                               "K" = "#C77CFF",
+                               "L" = "#C77CFF"))
+
+df %>% count(Cut)
+cut <- df %>%
+  ggplot() +
+  geom_bar(aes(Cut, fill = Cut)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Cut")
+
+df %>% count(Clarity)
+clarity <- df %>%
+  ggplot() +
+  geom_bar(aes(Clarity, fill = Clarity)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Clarity") +
+  scale_fill_manual(values = c("I1" = "#F8766D",
+                               "I2" = "#F8766D",
+                               "SI1" = "#7CAE00",
+                               "SI2" = "#7CAE00",
+                               "SI3" = "#7CAE00",
+                               "VS1" = "#00BFC4",
+                               "VS2" = "#00BFC4",
+                               "VVS1" = "#C77CFF",
+                               "VVS2" = "#C77CFF"))
+
+df %>% count(Certification)
+certification <- df %>%
+  ggplot() +
+  geom_bar(aes(Certification, fill = Certification)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Certification")
+
+df %>% count(Polish)
+polish <- df %>%
+  ggplot() +
+  geom_bar(aes(Polish, fill = Polish)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Polish")
+
+df %>% count(Symmetry)
+symmetry <- df %>%
+  ggplot() +
+  geom_bar(aes(Symmetry, fill = Symmetry)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none") +
+  labs(title = "Symmetry")
+
+color + cut + clarity + certification + polish + symmetry
+```
+
+## Comparison of Variables with Price, Boxplots
+```{r}
+carat.plot <- ggplot(data = df, 
+       mapping = aes(x = Carat, y = Price,
+                     colour = Wholesaler)) +
+  geom_point() 
+  
+color.plot <- ggplot (df, aes(x = Colour, y = Price)) +
+  geom_boxplot()
+
+cut.plot <- ggplot (df, aes(x = Cut, y = Price)) +
+  geom_boxplot()
+
+clarity.plot <- ggplot (df, aes(x = Clarity, y = Price)) +
+  geom_boxplot()
+
+certification.plot <- ggplot (df, aes(x = Certification, y = Price)) +
+  geom_boxplot()
+
+polish.plot <- ggplot (df, aes(x = Polish, y = Price)) +
+  geom_boxplot()
+
+symmetry.plot <- ggplot (df, aes(x = Symmetry, y = Price)) +
+  geom_boxplot()
+ carat + cut + color + clarity + certification + polish + symmetry 
+```
+ 
+## Effect of Variables on the Carat
+```{r}
+cut <- ggplot (df, aes(x = Cut, y = Carat)) +
+  geom_boxplot()
+color <- ggplot (df, aes(x = Colour, y = Carat)) +
+  geom_boxplot()
+clarity <- ggplot (df, aes(x = Clarity, y = Carat)) +
+  geom_boxplot()
+certification <- ggplot (df, aes(x = Certification, y = Carat)) +
+  geom_boxplot()
+polish <- ggplot (df, aes(x = Polish, y = Carat)) +
+  geom_boxplot()
+symmetry <- ggplot (df, aes(x = Symmetry, y = Carat)) +
+  geom_boxplot()
+cut +  color + clarity + certification + polish + symmetry 
+```
+
+> This is very important, because our data shows that carat has a high impact on the price of the diamond. By looking at the other variables impacts on carat, we can determine  
+
+### Bases on the graphs, it shows that the Carat and color has the most impact on price. As Carat increases, the price increases. It also shows that for colors J, K, L all have a higher price, which falls within the Faint yellow and light yellow. D has the highest price which is completely colorless and G which is Near colorless also has very high price. By looking at the chart, and those two factors, the diamond will come out to be around $2500, by just looking. The other boxplots have variation in them, showing that there isn't much correlation between them and price. For example, despite the polish going from Fair to Excelet, the price does not increase as the Polish quality increases, so therefor it shows that that variable does not have much impact on the price. On average, based on all of the factors that go into pricing, we can estimate the price will fall under $3000, so it is under the Professors price. 
+
+## Effect of Variables on the Carat
+```{r}
+cut <- ggplot (df, aes(x = Cut, y = Carat)) +
+  geom_boxplot()
+color <- ggplot (df, aes(x = Colour, y = Carat)) +
+  geom_boxplot()
+clarity <- ggplot (df, aes(x = Clarity, y = Carat)) +
+  geom_boxplot()
+certification <- ggplot (df, aes(x = Certification, y = Carat)) +
+  geom_boxplot()
+polish <- ggplot (df, aes(x = Polish, y = Carat)) +
+  geom_boxplot()
+symmetry <- ggplot (df, aes(x = Symmetry, y = Carat)) +
+  geom_boxplot()
+cut +  color + clarity + certification + polish + symmetry 
+```
+### Basesd on the graphs, it shows that there are no variables that impact the Carat of the diamond, which is the main impact on price. 
+
+## Linear Regression Model
+```{r}
+model <- lm(Price~Carat, data = df)
+summary(model)
+```
+## Therefore the equation of Price based on  just Carats is y = -200.48 + 2864.73x. The R-squared value is .8564, indicating it is a pretty decent model of fit for Linear Regression. It is not the strongest, but it is still pretty good.
+
+```{r}
+plot(model)
+```
+
+## Regression model for all variables
+```{r}
+model <- lm(Price~Carat + Colour + Clarity + Polish + Symmetry + Certification, data = df)
+summary(model)
+```
+## The equation for Price based on Carat and all the factors is y = -1419.008 + 4203.8547x. The R-Squared value is .9736, indicating this linear model is a very good fit. 
+
+```{r}
+plot(model)
+```
+
+
+## Bootstrap Validation
+```{r}
+set.seed(1)
+head(df)
+dim(df)
+train <- sample(440, 220)
+head(train)
+```
+
+```{r}
+boot.fn <- function(data, index) {
+  return(coef(lm(Price~Carat, data = df, subset = index)))
+}
+```
+
+```{r}
+boot.fn(Auto, 1:440)
+```
+
+```{r}
+set.seed(1)
+boot.fn(df, sample(440, 440, replace = T))
+```
+
+```{r}
+boot(df, boot.fn, 100)
+```
+
+```{r}
+boot.out <- boot(df, boot.fn, 100)
+plot(boot.out)
+```
+
+```{r}
+boot.fn <- function(data, index) {
+  return(coef(lm(Price~Carat, data = df, subset = index)))
+}
+boot.fn(df, 1:440)
+boot(df, boot.fn, 1000)
+boot.out <- boot(df, boot.fn, 1000)
+plot(boot.out)
+```
+
+
+## The final price we can predict the diamond to be based on will be:
+1. Equation 1: $2,377.78
+2. Equation 2: $2,364.46
+
+Based on the two numbers, it will fall under the Professors budget and that the factors like color, clarity, cut etc do not have much impact on the pricing of the diamond. 
+
