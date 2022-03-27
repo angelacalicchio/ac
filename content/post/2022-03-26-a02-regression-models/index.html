@@ -1,6 +1,6 @@
 ---
 title: 'A02: Regression Models'
-author: R package build
+author: "R package build"
 date: '2022-03-26'
 slug: a02-regression-models
 categories: []
@@ -10,3 +10,665 @@ tags: []
 <script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
+<div id="link-to-git-repository-excel-file-and-csv-file" class="section level1">
+<h1>Link to Git Repository Excel File and CSV file</h1>
+<pre class="r"><code>link &lt;- url(&quot;https://github.com/angelacalicchio/a02-diamonds/tree/main&quot;)</code></pre>
+</div>
+<div id="load-and-prepare-data-and-packages" class="section level1">
+<h1>Load and Prepare Data and Packages</h1>
+<pre class="r"><code>pacman::p_load(pacman, magrittr, productplots, psych, RColorBrewer, tidyverse)
+
+url &lt;- &#39;https://raw.githubusercontent.com/angelacalicchio/a02-diamonds/main/Professor_Proposes_Data.csv&#39;
+diamond_selection &lt;- read_csv(url)</code></pre>
+<pre><code>## Rows: 441 Columns: 9
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (7): Colour, Clarity, Cut, Certification, Polish, Symmetry, Price
+## dbl (2): Carat, Wholesaler
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>View(diamond_selection)</code></pre>
+<blockquote>
+<p><strong>IMPORTANT</strong>
+When viewing the excel file that was uploaded to rstudio, I noticed that price was being percieved as a date. In order to combat this, I converted to excel file to a csv file and uploaded that data to github, then used the raw data to upload it back to rstudio. (Both the excel file and csv file can be viewed from the link above)</p>
+</blockquote>
+</div>
+<div id="save-dataset-to-tibble-named-df-for-dataframe" class="section level1">
+<h1>Save dataset to tibble named “df” (for “dataframe”)</h1>
+<pre class="r"><code>df &lt;- diamond_selection %&gt;%
+  as_tibble() %&gt;%
+  print()</code></pre>
+<pre><code>## # A tibble: 441 × 9
+##    Carat Colour Clarity Cut   Certification Polish Symmetry Price  Wholesaler
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;       &lt;dbl&gt;
+##  1  0.92 I      SI2     G     AGS           V      V        $3,000          1
+##  2  0.92 I      SI2     V     AGS           G      G        $3,000          1
+##  3  0.82 F      SI2     I     GIA           X      X        $3,004          1
+##  4  0.81 G      SI1     I     GIA           X      V        $3,004          1
+##  5  0.9  J      VS2     V     GIA           V      V        $3,006          1
+##  6  0.87 F      SI2     I     AGS           G      V        $3,007          1
+##  7  0.8  D      SI2     I     GIA           V      V        $3,008          1
+##  8  0.84 F      SI1     G     GIA           V      V        $3,010          1
+##  9  0.8  D      SI2     V     GIA           V      V        $3,012          1
+## 10  0.8  D      SI2     V     GIA           V      X        $3,012          1
+## # … with 431 more rows</code></pre>
+</div>
+<div id="data-visualization" class="section level1">
+<h1>Data Visualization</h1>
+<div id="categorical-variables" class="section level2">
+<h2>Categorical Variables</h2>
+<div id="color" class="section level3">
+<h3>Color</h3>
+<div id="creating-a-bar-chart-looking-at-color" class="section level4">
+<h4>Creating a Bar Chart looking at Color</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Colour, fill = Colour)) +
+  scale_fill_manual(values = c(&quot;D&quot; = &quot;#F8766D&quot;,
+                               &quot;E&quot; = &quot;#F8766D&quot;,
+                               &quot;F&quot; = &quot;#F8766D&quot;,
+                               &quot;G&quot; = &quot;#00BFC4&quot;,
+                               &quot;H&quot; = &quot;#00BFC4&quot;,
+                               &quot;I&quot; = &quot;#00BFC4&quot;,
+                               &quot;J&quot; = &quot;#C77CFF&quot;,
+                               &quot;K&quot; = &quot;#C77CFF&quot;,
+                               &quot;L&quot; = &quot;#C77CFF&quot;,
+                               &quot;NA&quot; = &quot;black&quot;))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+<div id="removing-nas-from-colour" class="section level4">
+<h4>Removing NAs from Colour</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Colour))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Colour, fill = Colour)) +
+  scale_fill_manual(values = c(&quot;D&quot; = &quot;#F8766D&quot;,
+                               &quot;E&quot; = &quot;#F8766D&quot;,
+                               &quot;F&quot; = &quot;#F8766D&quot;,
+                               &quot;G&quot; = &quot;#00BFC4&quot;,
+                               &quot;H&quot; = &quot;#00BFC4&quot;,
+                               &quot;I&quot; = &quot;#00BFC4&quot;,
+                               &quot;J&quot; = &quot;#C77CFF&quot;,
+                               &quot;K&quot; = &quot;#C77CFF&quot;,
+                               &quot;L&quot; = &quot;#C77CFF&quot;,
+                               &quot;NA&quot; = &quot;black&quot;)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="frequencies-for-color" class="section level4">
+<h4>Frequencies for Color</h4>
+<pre class="r"><code>df %&gt;% count(Colour)</code></pre>
+<pre><code>## # A tibble: 9 × 2
+##   Colour     n
+##   &lt;chr&gt;  &lt;int&gt;
+## 1 D         20
+## 2 E         54
+## 3 F         58
+## 4 G         43
+## 5 H         71
+## 6 I         79
+## 7 J         72
+## 8 K         31
+## 9 L         12</code></pre>
+</div>
+</div>
+<div id="clarity" class="section level3">
+<h3>Clarity</h3>
+<div id="creating-a-bar-chart-looking-at-clarity" class="section level4">
+<h4>Creating a Bar Chart looking at Clarity</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Clarity, fill = Clarity)) +
+  scale_fill_manual(values = c(&quot;I1&quot; = &quot;#F8766D&quot;,
+                               &quot;I2&quot; = &quot;#F8766D&quot;,
+                               &quot;SI1&quot; = &quot;#7CAE00&quot;,
+                               &quot;SI2&quot; = &quot;#7CAE00&quot;,
+                               &quot;SI3&quot; = &quot;#7CAE00&quot;,
+                               &quot;VS1&quot; = &quot;#00BFC4&quot;,
+                               &quot;VS2&quot; = &quot;#00BFC4&quot;,
+                               &quot;VVS1&quot; = &quot;#C77CFF&quot;,
+                               &quot;VVS2&quot; = &quot;#C77CFF&quot;,
+                               &quot;NA&quot; = &quot;black&quot;))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="removing-nas-from-clarity" class="section level4">
+<h4>Removing NAs from Clarity</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Clarity))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Clarity, fill = Clarity)) +
+  scale_fill_manual(values = c(&quot;I1&quot; = &quot;#F8766D&quot;,
+                               &quot;I2&quot; = &quot;#F8766D&quot;,
+                               &quot;SI1&quot; = &quot;#7CAE00&quot;,
+                               &quot;SI2&quot; = &quot;#7CAE00&quot;,
+                               &quot;SI3&quot; = &quot;#7CAE00&quot;,
+                               &quot;VS1&quot; = &quot;#00BFC4&quot;,
+                               &quot;VS2&quot; = &quot;#00BFC4&quot;,
+                               &quot;VVS1&quot; = &quot;#C77CFF&quot;,
+                               &quot;VVS2&quot; = &quot;#C77CFF&quot;,
+                               &quot;NA&quot; = &quot;black&quot;)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="frequencies-for-clarity" class="section level4">
+<h4>Frequencies for Clarity</h4>
+<pre class="r"><code>df %&gt;% count(Clarity)</code></pre>
+<pre><code>## # A tibble: 9 × 2
+##   Clarity     n
+##   &lt;chr&gt;   &lt;int&gt;
+## 1 I1         82
+## 2 I2         28
+## 3 SI1       116
+## 4 SI2       110
+## 5 SI3        26
+## 6 VS1        30
+## 7 VS2        41
+## 8 VVS1        2
+## 9 VVS2        5</code></pre>
+</div>
+</div>
+<div id="cut" class="section level3">
+<h3>Cut</h3>
+<div id="creating-a-bar-chart-looking-at-cut" class="section level4">
+<h4>Creating a Bar Chart looking at Cut</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Cut, fill = Cut))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="removing-nas-from-cut" class="section level4">
+<h4>Removing NAs from Cut</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Clarity))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Clarity, fill = Clarity)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="frequencies-in-cut" class="section level4">
+<h4>Frequencies in Cut</h4>
+<pre class="r"><code>df %&gt;% count(Cut)</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   Cut       n
+##   &lt;chr&gt; &lt;int&gt;
+## 1 F        59
+## 2 G        49
+## 3 I        86
+## 4 V        97
+## 5 X       149</code></pre>
+</div>
+</div>
+<div id="certification" class="section level3">
+<h3>Certification</h3>
+<div id="creating-a-bar-chart-looking-at-certification" class="section level4">
+<h4>Creating a Bar Chart looking at Certification</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Certification, fill = Certification))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="removing-nas" class="section level4">
+<h4>Removing NAs</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Certification))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Certification, fill = Certification)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+<div id="frequencies-in-certification" class="section level4">
+<h4>Frequencies in Certification</h4>
+<pre class="r"><code>df %&gt;% count(Certification)</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   Certification     n
+##   &lt;chr&gt;         &lt;int&gt;
+## 1 AGS              12
+## 2 DOW               1
+## 3 EGL             119
+## 4 GIA             265
+## 5 IGI              43</code></pre>
+</div>
+</div>
+<div id="polish" class="section level3">
+<h3>Polish</h3>
+<div id="creating-a-bar-chart-looking-at-polish" class="section level4">
+<h4>Creating a Bar Chart looking at Polish</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Polish, fill = Polish))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="removing-nas-1" class="section level4">
+<h4>Removing NAs</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Polish))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Polish, fill = Polish)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="frequencies-in-polish" class="section level4">
+<h4>Frequencies in Polish</h4>
+<pre class="r"><code>df %&gt;% count(Polish)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   Polish     n
+##   &lt;chr&gt;  &lt;int&gt;
+## 1 F          5
+## 2 G        165
+## 3 I          5
+## 4 v          1
+## 5 V        203
+## 6 X         61</code></pre>
+</div>
+</div>
+<div id="symmetry" class="section level3">
+<h3>Symmetry</h3>
+<div id="creating-a-bar-chart-looking-at-symmetry" class="section level4">
+<h4>Creating a Bar Chart looking at Symmetry</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_bar(aes(x = Symmetry, fill = Symmetry))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="removing-nas-2" class="section level4">
+<h4>Removing NAs</h4>
+<pre class="r"><code>df %&lt;&gt;%
+  filter(!is.na(Symmetry))
+
+df %&gt;%
+  ggplot() + 
+  geom_bar(aes(Symmetry, fill = Symmetry)) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = &quot;none&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+<div id="frequencies-in-symmetry" class="section level4">
+<h4>Frequencies in Symmetry</h4>
+<pre class="r"><code>df %&gt;% count(Symmetry)</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   Symmetry     n
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 F           21
+## 2 G          157
+## 3 I            5
+## 4 V          206
+## 5 X           51</code></pre>
+</div>
+</div>
+</div>
+<div id="continuous-variables" class="section level2">
+<h2>Continuous Variables</h2>
+<div id="carat" class="section level3">
+<h3>Carat</h3>
+<div id="creating-a-histogram-for-carat" class="section level4">
+<h4>Creating a Histogram for Carat</h4>
+<pre class="r"><code>ggplot(diamond_selection) +
+  geom_histogram(aes(x = Carat), binwidth = 0.1)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+</div>
+<div id="bootstrapping-the-data" class="section level1">
+<h1>Bootstrapping the data</h1>
+<div id="preparing-the-data-for-bootstrapping" class="section level2">
+<h2>Preparing the data for bootstrapping</h2>
+<pre class="r"><code>library(boot)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;boot&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:psych&#39;:
+## 
+##     logit</code></pre>
+<pre class="r"><code>library(patchwork)
+library(tidyverse)
+library(pacman)</code></pre>
+<pre class="r"><code>summary(df)</code></pre>
+<pre><code>##      Carat           Colour            Clarity              Cut           
+##  Min.   :0.0900   Length:440         Length:440         Length:440        
+##  1st Qu.:0.3000   Class :character   Class :character   Class :character  
+##  Median :0.8100   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :0.6693                                                           
+##  3rd Qu.:1.0100                                                           
+##  Max.   :1.5800                                                           
+##  Certification         Polish            Symmetry            Price          
+##  Length:440         Length:440         Length:440         Length:440        
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##    Wholesaler   
+##  Min.   :1.000  
+##  1st Qu.:2.000  
+##  Median :2.000  
+##  Mean   :2.318  
+##  3rd Qu.:3.000  
+##  Max.   :3.000</code></pre>
+</div>
+<div id="comparison-of-variables-with-price-boxplots" class="section level2">
+<h2>Comparison of Variables with Price, Boxplots</h2>
+<pre class="r"><code>carat.plot &lt;- ggplot(data = df, 
+       mapping = aes(x = Carat, y = Price, colour = Wholesaler)) +
+  geom_point()
+  
+color.plot &lt;- ggplot (df, aes(x = Colour, y = Price)) +
+  geom_boxplot()
+
+cut.plot &lt;- ggplot (df, aes(x = Cut, y = Price)) +
+  geom_boxplot()
+
+clarity.plot &lt;- ggplot (df, aes(x = Clarity, y = Price)) +
+  geom_boxplot()
+
+certification.plot &lt;- ggplot (df, aes(x = Certification, y = Price)) +
+  geom_boxplot()
+
+polish.plot &lt;- ggplot (df, aes(x = Polish, y = Price)) +
+  geom_boxplot()
+
+symmetry.plot &lt;- ggplot (df, aes(x = Symmetry, y = Price)) +
+  geom_boxplot()
+ carat.plot + cut.plot + color.plot + clarity.plot + certification.plot + polish.plot + symmetry.plot </code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<blockquote>
+<p>Looking at the graphs, we can determine that Carat and Color have the most impact on price. There seems to be a positive correlation between price and carat, as well as a correlation between certain colors and price. The other factors have lots of variation in them, which may indicate that there is no correlation between them and price or perhaps a small positive correlation. Because of this, the factors that I will focus on from here on out will be carat and color. If we are inferring from the data, the diamond that the Professor is searching for should, in theory, be cheaper than $3000, which is well within his range. Also, if look into the Wholesaler of choice, we can immediately remove wholesaler 3 who has little to no inventory in the area that the Professor is searching for.</p>
+</blockquote>
+</div>
+<div id="effect-of-variables-on-the-carat" class="section level2">
+<h2>Effect of Variables on the Carat</h2>
+<pre class="r"><code>cut &lt;- ggplot (df, aes(x = Cut, y = Carat)) +
+  geom_boxplot()
+color &lt;- ggplot (df, aes(x = Colour, y = Carat)) +
+  geom_boxplot()
+clarity &lt;- ggplot (df, aes(x = Clarity, y = Carat)) +
+  geom_boxplot()
+certification &lt;- ggplot (df, aes(x = Certification, y = Carat)) +
+  geom_boxplot()
+polish &lt;- ggplot (df, aes(x = Polish, y = Carat)) +
+  geom_boxplot()
+symmetry &lt;- ggplot (df, aes(x = Symmetry, y = Carat)) +
+  geom_boxplot()
+cut +  color + clarity + certification + polish + symmetry </code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<blockquote>
+<p>This is very important, because our data shows that carat has a high impact on the price of the diamond, as does color, which was to be expected. By looking at the other variables impacts on carat, we can determine that they have little impact on the price, as they have little impact on carat.</p>
+</blockquote>
+</div>
+<div id="creating-a-linear-model" class="section level2">
+<h2>Creating a Linear Model</h2>
+<pre class="r"><code>set.seed(1)
+head(df)</code></pre>
+<pre><code>## # A tibble: 6 × 9
+##   Carat Colour Clarity Cut   Certification Polish Symmetry Price  Wholesaler
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;       &lt;dbl&gt;
+## 1  0.92 I      SI2     G     AGS           V      V        $3,000          1
+## 2  0.92 I      SI2     V     AGS           G      G        $3,000          1
+## 3  0.82 F      SI2     I     GIA           X      X        $3,004          1
+## 4  0.81 G      SI1     I     GIA           X      V        $3,004          1
+## 5  0.9  J      VS2     V     GIA           V      V        $3,006          1
+## 6  0.87 F      SI2     I     AGS           G      V        $3,007          1</code></pre>
+<pre class="r"><code>dim(df)</code></pre>
+<pre><code>## [1] 440   9</code></pre>
+<pre class="r"><code>## Create an index to randomly sample 50% records from Auto
+train &lt;- sample(440, 220)</code></pre>
+<pre class="r"><code>lm.fit &lt;- lm(Carat~Price, data = df) 
+lm.fit</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Carat ~ Price, data = df)
+## 
+## Coefficients:
+##  (Intercept)   Price$1,892   Price$1,918   Price$1,929   Price$1,966  
+##    1.000e+00     6.000e-02    -8.596e-15     1.000e-02     4.000e-02  
+##  Price$1,985   Price$1,988  Price$160.00  Price$180.00  Price$190.00  
+##    5.000e-02     2.300e-01    -9.000e-01    -8.991e-01    -9.020e-01  
+##  Price$2,031   Price$2,035   Price$2,045   Price$2,049   Price$2,065  
+##    1.800e-01     2.000e-02    -1.914e-15     2.289e-15     5.000e-02  
+##  Price$2,070   Price$2,100   Price$2,101   Price$2,128   Price$2,149  
+##   -3.813e-15     2.000e-02    -4.420e-15     4.734e-15     1.000e-02  
+##  Price$2,156   Price$2,162   Price$2,168   Price$2,170   Price$2,192  
+##    1.000e-02     4.000e-02    -1.345e-15    -8.892e-15     1.000e-02  
+##  Price$2,195   Price$2,213   Price$2,226   Price$2,228   Price$2,243  
+##    1.000e-01     2.000e-02    -3.349e-16    -4.354e-15    -1.527e-15  
+##  Price$2,252   Price$2,263   Price$2,288   Price$2,292   Price$2,301  
+##    1.000e-02     2.100e-01     1.683e-17     1.600e-01     1.700e-01  
+##  Price$2,306   Price$2,308   Price$2,310   Price$2,316   Price$2,321  
+##   -4.761e-15     4.000e-02    -2.187e-15    -3.969e-15     1.000e-02  
+##  Price$2,330   Price$2,333   Price$2,338   Price$2,351   Price$2,359  
+##    9.000e-02     2.000e-02     5.000e-02     1.000e-01     1.683e-15  
+##  Price$2,360   Price$2,363   Price$2,364   Price$2,367   Price$2,368  
+##    6.000e-02     1.000e-02     1.988e-15     3.000e-02     1.500e-01  
+##  Price$2,380   Price$2,382   Price$2,386   Price$2,390   Price$2,397  
+##   -4.098e-15     1.000e-02     7.000e-02     4.000e-02     2.500e-01  
+##  Price$2,413   Price$2,427   Price$2,437   Price$2,438   Price$2,446  
+##    5.000e-02     9.000e-02     1.400e-01     1.100e-01     2.100e-01  
+##  Price$2,451   Price$2,452   Price$2,467   Price$2,476   Price$2,486  
+##    3.000e-02    -2.094e-15     1.500e-01     1.000e-02    -9.763e-16  
+##  Price$2,493   Price$2,495   Price$2,511   Price$2,516   Price$2,565  
+##    1.200e-01     1.000e-02     1.500e-02     2.200e-01     2.000e-01  
+##  Price$2,574   Price$2,584   Price$2,586   Price$2,591   Price$2,600  
+##    1.000e-01     1.600e-01     1.250e-01     5.867e-16     1.000e-01  
+##  Price$2,601   Price$2,607   Price$2,617   Price$2,620   Price$2,625  
+##    2.000e-02     3.300e-01     1.000e-01     5.800e-01     1.750e-02  
+##  Price$2,629   Price$2,640   Price$2,651   Price$2,654   Price$2,655  
+##    2.000e-02     1.000e-02     1.000e-02     1.000e-02    -2.604e-15  
+##  Price$2,660   Price$2,668   Price$2,678   Price$2,682   Price$2,689  
+##    6.176e-16     1.000e-02    -2.938e-15    -2.254e-15     7.000e-02  
+##  Price$2,692   Price$2,693   Price$2,704   Price$2,714   Price$2,716  
+##    2.333e-02     5.000e-02     4.100e-01     1.600e-01     1.000e-02  
+##  Price$2,730   Price$2,745   Price$2,757   Price$2,765   Price$2,770  
+##   -4.716e-16     2.000e-02     1.000e-02     1.200e-01     7.000e-02  
+##  Price$2,772   Price$2,775   Price$2,779   Price$2,780   Price$3,000  
+##    4.667e-02     1.600e-01     8.654e-16     9.061e-16    -8.000e-02  
+##  Price$3,004   Price$3,006   Price$3,007   Price$3,008   Price$3,010  
+##   -1.850e-01    -1.000e-01    -1.300e-01    -2.000e-01    -1.600e-01  
+##  Price$3,012   Price$3,014   Price$3,015   Price$3,022   Price$3,023  
+##   -2.000e-01    -1.600e-01    -1.800e-01    -2.000e-01    -9.000e-02  
+##  Price$3,027   Price$3,028   Price$3,029   Price$3,031   Price$3,035  
+##   -1.900e-01    -1.000e-01    -1.900e-01    -1.967e-01    -2.000e-01  
+##  Price$3,036   Price$3,038   Price$3,041   Price$3,042   Price$3,043  
+##   -1.900e-01    -9.000e-02    -1.700e-01    -1.200e-01    -1.000e-01  
+##  Price$3,044   Price$3,049   Price$3,051   Price$3,053   Price$3,056  
+##   -1.400e-01    -1.900e-01    -1.633e-01    -1.950e-01    -1.000e-01  
+##  Price$3,057   Price$3,059   Price$3,062   Price$3,064   Price$3,067  
+##   -1.900e-01    -2.000e-01    -2.000e-01    -1.500e-01    -2.000e-01  
+##  Price$3,069   Price$3,071   Price$3,072   Price$3,079   Price$3,080  
+##   -1.000e-01    -2.000e-01    -1.800e-01    -1.900e-01    -1.000e-01  
+##  Price$3,081   Price$3,082   Price$3,083   Price$3,084   Price$3,085  
+##   -1.000e-01     3.000e-02     2.100e-01     4.000e-02     5.000e-03  
+##  Price$3,086   Price$3,089   Price$3,091   Price$3,093   Price$3,098  
+##   -9.500e-02    -1.000e-02    -8.000e-02     1.150e-01     1.000e-02  
+##  Price$3,101   Price$3,102   Price$3,105   Price$3,107   Price$3,108  
+##   -7.705e-15     1.000e-02    -5.084e-15     1.000e-02     9.167e-02  
+##  Price$3,111   Price$3,112   Price$3,114   Price$3,118   Price$3,119  
+##    1.000e-02     1.300e-01    -1.199e-14     1.000e-02     2.000e-02  
+##  Price$3,122   Price$3,124   Price$3,125   Price$3,126   Price$3,127  
+##    1.100e-01     1.150e-01     1.300e-01     6.348e-16    -3.678e-15  
+##  Price$3,130   Price$3,135   Price$3,136   Price$3,137   Price$3,138  
+##    2.000e-02     3.333e-03    -2.806e-15     1.250e-01     4.000e-02  
+##  Price$3,139   Price$3,140   Price$3,141   Price$3,142   Price$3,145  
+##    1.000e-02     1.500e-01     3.000e-02     4.000e-02     1.000e-02  
+## Price$320.00  Price$330.00  Price$340.00  Price$360.00  Price$372.00  
+##   -7.950e-01    -8.050e-01    -7.833e-01    -7.720e-01    -7.000e-01  
+## Price$404.00  Price$439.00  Price$466.00  Price$468.00  Price$476.00  
+##   -7.700e-01    -7.000e-01    -7.000e-01    -7.000e-01    -7.000e-01  
+## Price$490.00  Price$493.00  Price$504.00  Price$519.00  Price$520.00  
+##   -7.000e-01    -7.000e-01    -7.000e-01    -7.000e-01    -7.000e-01  
+## Price$531.00  Price$544.00  Price$547.00  Price$559.00  Price$594.00  
+##   -7.000e-01    -7.000e-01    -7.000e-01    -7.000e-01    -7.300e-01  
+## Price$658.00  Price$665.00  
+##   -7.200e-01    -7.700e-01</code></pre>
+<pre class="r"><code>plot(lm.fit)</code></pre>
+<pre><code>## Warning: not plotting observations with leverage one:
+##   5, 6, 15, 16, 17, 18, 25, 43, 50, 51, 61, 62, 63, 64, 66, 69, 70, 72, 74, 75, 79, 80, 85, 86, 87, 91, 94, 96, 97, 98, 101, 104, 107, 109, 115, 116, 117, 119, 134, 135, 152, 161, 165, 177, 178, 179, 180, 181, 182, 183, 184, 186, 187, 192, 195, 201, 204, 210, 211, 215, 216, 217, 225, 226, 227, 231, 233, 277, 278, 284, 287, 288, 296</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-27-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-27-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-27-3.png" width="672" /></p>
+<pre><code>## Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced</code></pre>
+<pre><code>## Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-27-4.png" width="672" /></p>
+</div>
+<div id="bootstrapping-the-data-1" class="section level2">
+<h2>Bootstrapping the Data</h2>
+<div id="set-seed" class="section level3">
+<h3>Set Seed</h3>
+<pre class="r"><code>set.seed(1)
+head(df)</code></pre>
+<pre><code>## # A tibble: 6 × 9
+##   Carat Colour Clarity Cut   Certification Polish Symmetry Price  Wholesaler
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;       &lt;dbl&gt;
+## 1  0.92 I      SI2     G     AGS           V      V        $3,000          1
+## 2  0.92 I      SI2     V     AGS           G      G        $3,000          1
+## 3  0.82 F      SI2     I     GIA           X      X        $3,004          1
+## 4  0.81 G      SI1     I     GIA           X      V        $3,004          1
+## 5  0.9  J      VS2     V     GIA           V      V        $3,006          1
+## 6  0.87 F      SI2     I     AGS           G      V        $3,007          1</code></pre>
+<pre class="r"><code>dim(df)</code></pre>
+<pre><code>## [1] 440   9</code></pre>
+<pre class="r"><code>train &lt;- sample(440, 220)
+head(train)</code></pre>
+<pre><code>## [1] 324 167 129 418 299 270</code></pre>
+</div>
+<div id="filter-out-wholesaler-3" class="section level3">
+<h3>Filter Out Wholesaler 3</h3>
+<pre class="r"><code>df.1.2 &lt;- df %&gt;%
+  filter(Wholesaler == 3)
+
+df.1.2</code></pre>
+<pre><code>## # A tibble: 200 × 9
+##    Carat Colour Clarity Cut   Certification Polish Symmetry Price   Wholesaler
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt;
+##  1  0.09 D      SI1     X     IGI           G      G        $190.00          3
+##  2  0.09 E      SI1     I     IGI           G      G        $160.00          3
+##  3  0.09 F      SI1     I     IGI           V      G        $160.00          3
+##  4  0.09 E      SI1     I     IGI           G      G        $180.00          3
+##  5  0.09 E      VS1     I     IGI           V      G        $190.00          3
+##  6  0.1  E      VS2     V     IGI           V      G        $330.00          3
+##  7  0.1  F      VS1     V     IGI           G      G        $180.00          3
+##  8  0.1  E      VS2     X     IGI           G      G        $180.00          3
+##  9  0.1  F      VS2     X     IGI           V      G        $180.00          3
+## 10  0.1  F      SI1     X     IGI           G      G        $190.00          3
+## # … with 190 more rows</code></pre>
+</div>
+<div id="graph" class="section level3">
+<h3>Graph</h3>
+<pre class="r"><code>df %&gt;%
+  ggplot(aes(x = Carat, y = Price, color = Wholesaler)) + 
+  geom_point()</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<pre class="r"><code>df.3 &lt;- df %&gt;%
+  filter(Wholesaler == 2 | Wholesaler == 1)
+dim(df.3)</code></pre>
+<pre><code>## [1] 240   9</code></pre>
+<pre class="r"><code>df.3 %&gt;% 
+  ggplot(aes(x = Carat, y = Price, color = Wholesaler 
+    )) +
+  geom_point()</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<pre class="r"><code>attach(df.3)</code></pre>
+<pre class="r"><code>dim(df.3)</code></pre>
+<pre><code>## [1] 240   9</code></pre>
+<pre class="r"><code>boot.fn &lt;- function(data, index) {
+  return(coef(lm(Carat~Price + Colour + Clarity+ Cut + Certification + Polish + Symmetry, data = df , subset = train)))
+}
+set.seed(1)
+boot.fn(df, sample(240, 120, replace=T))</code></pre>
+<pre><code>##      (Intercept)      Price$1,892      Price$1,929      Price$1,966 
+##     1.1445662604     0.1038914147     0.0976544700     0.0204183343 
+##     Price$160.00     Price$180.00     Price$190.00      Price$2,045 
+##    -0.5516377198    -0.5066515020    -0.4974786850     0.0354144399 
+##      Price$2,065      Price$2,070      Price$2,101      Price$2,149 
+##     0.1254276876     0.0469393015     0.1677713524     0.0929271934 
+##      Price$2,156      Price$2,162      Price$2,168      Price$2,195 
+##     0.0413059344     0.1211024732     0.0435922058     0.0867642059 
+##      Price$2,213      Price$2,226      Price$2,252      Price$2,292 
+##     0.0146992713    -0.0850908247     0.1123798926     0.2044920002 
+##      Price$2,301      Price$2,321      Price$2,330      Price$2,333 
+##     0.2454276876     0.0868465148     0.1695524884     0.0523977030 
+##      Price$2,351      Price$2,359      Price$2,360      Price$2,363 
+##     0.1787747833     0.0876765384     0.1385989781     0.0953488486 
+##      Price$2,364      Price$2,367      Price$2,380      Price$2,386 
+##     0.0444920002     0.1100217493     0.1281728537     0.0985365929 
+##      Price$2,413      Price$2,427      Price$2,437      Price$2,451 
+##     0.0926672800    -0.0015659597     0.0476563352     0.1080301129 
+##      Price$2,476      Price$2,486      Price$2,495      Price$2,565 
+##     0.2223877794     0.1129853693     0.0993306923     0.2795524884 
+##      Price$2,574      Price$2,591      Price$2,600      Price$2,620 
+##     0.1805995035     0.2326319928     0.2104273207     0.4598974473 
+##      Price$2,625      Price$2,654      Price$2,655      Price$2,660 
+##     0.0920619272     0.1193016435     0.2604541505     0.1627698327 
+##      Price$2,682      Price$2,689      Price$2,692      Price$2,704 
+##     0.1455587235     0.2100176567    -0.0669940796     0.3184340403 
+##      Price$2,714      Price$2,745      Price$2,770      Price$2,772 
+##     0.0837888620     0.1591451753     0.2127893820    -0.0487293170 
+##      Price$2,775      Price$2,780      Price$3,000      Price$3,015 
+##     0.1913097443     0.2848601642     0.1619534372     0.1977868365 
+##      Price$3,022      Price$3,023      Price$3,029      Price$3,031 
+##     0.1715470963     0.1742888922     0.1357625720     0.1623248014 
+##      Price$3,035      Price$3,036      Price$3,041      Price$3,042 
+##     0.1683315222     0.1701748808    -0.0216835679     0.1912761656 
+##      Price$3,043      Price$3,044      Price$3,049      Price$3,051 
+##     0.2254686682     0.1744371414     0.1805673824     0.1554941296 
+##      Price$3,053      Price$3,056      Price$3,057      Price$3,059 
+##     0.1723248014     0.2331683962     0.1804716572     0.2176986516 
+##      Price$3,062      Price$3,064      Price$3,069      Price$3,071 
+##     0.1275471440     0.1890377759     0.1659730275     0.1269733232 
+##      Price$3,072      Price$3,079      Price$3,080      Price$3,082 
+##     0.1874277209     0.1887956016     0.2247880667     0.1160276234 
+##      Price$3,083      Price$3,084      Price$3,085      Price$3,086 
+##     0.1838442691     0.1287969649     0.2898600697     0.3271347996 
+##      Price$3,089      Price$3,093      Price$3,098      Price$3,101 
+##     0.0464126638     0.2538979586     0.1027285114     0.0782009625 
+##      Price$3,107      Price$3,108      Price$3,111      Price$3,114 
+##    -0.0597360030     0.2253263991     0.2204495023     0.2695053425 
+##      Price$3,122      Price$3,127      Price$3,135      Price$3,136 
+##     0.3807453602     0.2682418652     0.3132960829     0.0823218299 
+##      Price$3,137      Price$3,138      Price$3,139     Price$320.00 
+##     0.3794684012     0.3346122370     0.2189964093    -0.3106301645 
+##     Price$330.00     Price$340.00     Price$360.00     Price$372.00 
+##    -0.4517974885    -0.4094174262    -0.4220016426    -0.6771710403 
+##     Price$404.00     Price$466.00     Price$468.00     Price$476.00 
+##    -0.4146883923    -0.4404024924    -0.3749133258    -0.4365232760 
+##     Price$490.00     Price$493.00     Price$504.00     Price$519.00 
+##    -0.7923436648    -0.3874948591    -0.3874135301    -0.3755362609 
+##     Price$520.00     Price$531.00     Price$547.00     Price$559.00 
+##    -0.3843159489    -0.3860263704    -0.3353793392    -0.3372110942 
+##     Price$594.00     Price$658.00          ColourE          ColourF 
+##    -0.3020123828    -0.2238251900    -0.1808966520    -0.1726684329 
+##          ColourG          ColourH          ColourI          ColourJ 
+##    -0.1711184481    -0.1677713524    -0.1188784180    -0.0654102288 
+##          ColourK          ColourL        ClarityI2       ClaritySI1 
+##               NA               NA               NA    -0.2873612182 
+##       ClaritySI2       ClaritySI3       ClarityVS1       ClarityVS2 
+##    -0.2351330468    -0.1182778325    -0.3384098539    -0.3366652885 
+##      ClarityVVS1      ClarityVVS2             CutG             CutI 
+##    -0.4556075914    -0.4080277159     0.0106054767     0.0125854802 
+##             CutV             CutX CertificationEGL CertificationGIA 
+##     0.0114937117     0.0153548217    -0.0262884279    -0.0244637077 
+## CertificationIGI          PolishG          PolishI          PolishV 
+##               NA     0.0059013142    -0.0621882701    -0.0005738208 
+##          PolishX        SymmetryG        SymmetryI        SymmetryV 
+##               NA    -0.0497927289               NA    -0.0425398888 
+##        SymmetryX 
+##    -0.0421339957</code></pre>
+<blockquote>
+<p>The professor found a diamond that seemed to be well within the parimeters of diamonds that are comparable, by my calcualtions a diamond of this caliber should cost around $2900-$3000; however, since there is no diamond within the data set with the exact parimeters, it is safe to assume that the price he is paying is completely normal and he shouldn’t have to worry about being ripped off from Wholesaler 1 or 2.</p>
+</blockquote>
+</div>
+</div>
+</div>

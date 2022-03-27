@@ -248,95 +248,19 @@ ggplot(diamond_selection) +
 ```{r}
 library(boot)
 library(patchwork)
+library(tidyverse)
+library(pacman)
 ```
 
 ```{r}
 summary(df)
 ```
 
-## Plotting Everything Side-by-Side
-```{r}
-df %>% count(Colour)
-color <- df %>%
-  ggplot() +
-  geom_bar(aes(Colour, fill = Colour)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Color") +
-  scale_fill_manual(values = c("D" = "#F8766D",
-                               "E" = "#F8766D",
-                               "F" = "#F8766D",
-                               "G" = "#00BFC4",
-                               "H" = "#00BFC4",
-                               "I" = "#00BFC4",
-                               "J" = "#C77CFF",
-                               "K" = "#C77CFF",
-                               "L" = "#C77CFF"))
-
-df %>% count(Cut)
-cut <- df %>%
-  ggplot() +
-  geom_bar(aes(Cut, fill = Cut)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Cut")
-
-df %>% count(Clarity)
-clarity <- df %>%
-  ggplot() +
-  geom_bar(aes(Clarity, fill = Clarity)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Clarity") +
-  scale_fill_manual(values = c("I1" = "#F8766D",
-                               "I2" = "#F8766D",
-                               "SI1" = "#7CAE00",
-                               "SI2" = "#7CAE00",
-                               "SI3" = "#7CAE00",
-                               "VS1" = "#00BFC4",
-                               "VS2" = "#00BFC4",
-                               "VVS1" = "#C77CFF",
-                               "VVS2" = "#C77CFF"))
-
-df %>% count(Certification)
-certification <- df %>%
-  ggplot() +
-  geom_bar(aes(Certification, fill = Certification)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Certification")
-
-df %>% count(Polish)
-polish <- df %>%
-  ggplot() +
-  geom_bar(aes(Polish, fill = Polish)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Polish")
-
-df %>% count(Symmetry)
-symmetry <- df %>%
-  ggplot() +
-  geom_bar(aes(Symmetry, fill = Symmetry)) +
-  theme(
-    axis.title.x = element_blank(),
-    legend.position = "none") +
-  labs(title = "Symmetry")
-
-color + cut + clarity + certification + polish + symmetry
-```
-
 ## Comparison of Variables with Price, Boxplots
 ```{r}
 carat.plot <- ggplot(data = df, 
-       mapping = aes(x = Carat, y = Price,
-                     colour = Wholesaler)) +
-  geom_point() 
+       mapping = aes(x = Carat, y = Price, colour = Wholesaler)) +
+  geom_point()
   
 color.plot <- ggplot (df, aes(x = Colour, y = Price)) +
   geom_boxplot()
@@ -355,29 +279,10 @@ polish.plot <- ggplot (df, aes(x = Polish, y = Price)) +
 
 symmetry.plot <- ggplot (df, aes(x = Symmetry, y = Price)) +
   geom_boxplot()
- carat + cut + color + clarity + certification + polish + symmetry 
+ carat.plot + cut.plot + color.plot + clarity.plot + certification.plot + polish.plot + symmetry.plot 
 ```
  
-## Effect of Variables on the Carat
-```{r}
-cut <- ggplot (df, aes(x = Cut, y = Carat)) +
-  geom_boxplot()
-color <- ggplot (df, aes(x = Colour, y = Carat)) +
-  geom_boxplot()
-clarity <- ggplot (df, aes(x = Clarity, y = Carat)) +
-  geom_boxplot()
-certification <- ggplot (df, aes(x = Certification, y = Carat)) +
-  geom_boxplot()
-polish <- ggplot (df, aes(x = Polish, y = Carat)) +
-  geom_boxplot()
-symmetry <- ggplot (df, aes(x = Symmetry, y = Carat)) +
-  geom_boxplot()
-cut +  color + clarity + certification + polish + symmetry 
-```
-
-> This is very important, because our data shows that carat has a high impact on the price of the diamond. By looking at the other variables impacts on carat, we can determine  
-
-### Bases on the graphs, it shows that the Carat and color has the most impact on price. As Carat increases, the price increases. It also shows that for colors J, K, L all have a higher price, which falls within the Faint yellow and light yellow. D has the highest price which is completely colorless and G which is Near colorless also has very high price. By looking at the chart, and those two factors, the diamond will come out to be around $2500, by just looking. The other boxplots have variation in them, showing that there isn't much correlation between them and price. For example, despite the polish going from Fair to Excelet, the price does not increase as the Polish quality increases, so therefor it shows that that variable does not have much impact on the price. On average, based on all of the factors that go into pricing, we can estimate the price will fall under $3000, so it is under the Professors price. 
+> Looking at the graphs, we can determine that Carat and Color have the most impact on price. There seems to be a positive correlation between price and carat, as well as a correlation between certain colors and price. The other factors have lots of variation in them, which may indicate that there is no correlation between them and price or perhaps a small positive correlation. Because of this, the factors that I will focus on from here on out will be carat and color. If we are inferring from the data, the diamond that the Professor is searching for should, in theory, be cheaper than $3000, which is well within his range. Also, if look into the Wholesaler of choice, we can immediately remove wholesaler 3 who has little to no inventory in the area that the Professor is searching for.
 
 ## Effect of Variables on the Carat
 ```{r}
@@ -395,32 +300,28 @@ symmetry <- ggplot (df, aes(x = Symmetry, y = Carat)) +
   geom_boxplot()
 cut +  color + clarity + certification + polish + symmetry 
 ```
-### Basesd on the graphs, it shows that there are no variables that impact the Carat of the diamond, which is the main impact on price. 
 
-## Linear Regression Model
+> This is very important, because our data shows that carat has a high impact on the price of the diamond, as does color, which was to be expected. By looking at the other variables impacts on carat, we can determine that they have little impact on the price, as they have little impact on carat.
+
+## Creating a Linear Model
 ```{r}
-model <- lm(Price~Carat, data = df)
-summary(model)
+set.seed(1)
+head(df)
+dim(df)
+## Create an index to randomly sample 50% records from Auto
+train <- sample(440, 220)
 ```
-## Therefore the equation of Price based on  just Carats is y = -200.48 + 2864.73x. The R-squared value is .8564, indicating it is a pretty decent model of fit for Linear Regression. It is not the strongest, but it is still pretty good.
-
 ```{r}
-plot(model)
+lm.fit <- lm(Carat~Price, data = df) 
+lm.fit
 ```
-
-## Regression model for all variables
 ```{r}
-model <- lm(Price~Carat + Colour + Clarity + Polish + Symmetry + Certification, data = df)
-summary(model)
-```
-## The equation for Price based on Carat and all the factors is y = -1419.008 + 4203.8547x. The R-Squared value is .9736, indicating this linear model is a very good fit. 
-
-```{r}
-plot(model)
+plot(lm.fit)
 ```
 
+## Bootstrapping the Data
 
-## Bootstrap Validation
+### Set Seed
 ```{r}
 set.seed(1)
 head(df)
@@ -429,44 +330,43 @@ train <- sample(440, 220)
 head(train)
 ```
 
+### Filter Out Wholesaler 3
+```{r}
+df.1.2 <- df %>%
+  filter(Wholesaler == 3)
+
+df.1.2
+```
+
+### Graph
+```{r}
+df %>%
+  ggplot(aes(x = Carat, y = Price, color = Wholesaler)) + 
+  geom_point()
+```
+
+```{r}
+df.3 <- df %>%
+  filter(Wholesaler == 2 | Wholesaler == 1)
+dim(df.3)
+df.3 %>% 
+  ggplot(aes(x = Carat, y = Price, color = Wholesaler 
+    )) +
+  geom_point()
+attach(df.3)
+```
+
+```{r}
+dim(df.3)
+```
+
 ```{r}
 boot.fn <- function(data, index) {
-  return(coef(lm(Price~Carat, data = df, subset = index)))
+  return(coef(lm(Carat~Price + Colour + Clarity+ Cut + Certification + Polish + Symmetry, data = df , subset = train)))
 }
-```
-
-```{r}
-boot.fn(Auto, 1:440)
-```
-
-```{r}
 set.seed(1)
-boot.fn(df, sample(440, 440, replace = T))
+boot.fn(df, sample(240, 120, replace=T))
 ```
 
-```{r}
-boot(df, boot.fn, 100)
-```
-
-```{r}
-boot.out <- boot(df, boot.fn, 100)
-plot(boot.out)
-```
-
-```{r}
-boot.fn <- function(data, index) {
-  return(coef(lm(Price~Carat, data = df, subset = index)))
-}
-boot.fn(df, 1:440)
-boot(df, boot.fn, 1000)
-boot.out <- boot(df, boot.fn, 1000)
-plot(boot.out)
-```
-
-
-## The final price we can predict the diamond to be based on will be:
-1. Equation 1: $2,377.78
-2. Equation 2: $2,364.46
-
-Based on the two numbers, it will fall under the Professors budget and that the factors like color, clarity, cut etc do not have much impact on the pricing of the diamond. 
+> The professor found a diamond that seemed to be well within the parimeters of diamonds that are comparable, by my calcualtions a diamond of this caliber should cost around $2900-$3000; however, since there is no diamond within the data set with the exact parimeters, it is safe to assume that the price he is paying is completely normal and he shouldn't have to worry about being ripped off from Wholesaler 1 or 2. 
 
