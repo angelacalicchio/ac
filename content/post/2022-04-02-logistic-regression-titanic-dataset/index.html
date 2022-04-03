@@ -1,0 +1,381 @@
+---
+title: 'Logistic Regression: Titanic Dataset'
+author: "R package build"
+date: '2022-04-02'
+slug: logistic-regression-titanic-dataset
+categories: []
+tags: []
+---
+
+
+
+<div id="all-data-amd-information-about-the-data-set-can-be-found-at-the-following-url" class="section level1">
+<h1>All Data amd Information about the data set can be found at the following url…</h1>
+<pre class="r"><code>url &lt;- &#39;https://www.kaggle.com/c/titanic&#39;</code></pre>
+</div>
+<div id="load-data-set-and-necessary-libraries" class="section level1">
+<h1>Load Data Set and Necessary Libraries</h1>
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.7-1</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:randomForest&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+## ✓ tibble  3.1.6     ✓ stringr 1.4.0
+## ✓ tidyr   1.2.0     ✓ forcats 0.5.1
+## ✓ readr   2.1.2</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::combine()  masks randomForest::combine()
+## x dplyr::filter()   masks stats::filter()
+## x dplyr::lag()      masks stats::lag()
+## x ggplot2::margin() masks randomForest::margin()</code></pre>
+<pre class="r"><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## 
+## Attaching package: &#39;caret&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     lift</code></pre>
+<pre class="r"><code>library(readr)
+library(ResourceSelection)</code></pre>
+<pre><code>## ResourceSelection 0.3-5   2019-07-22</code></pre>
+<pre class="r"><code>train &lt;- read_csv(&quot;~/Downloads/titanic/train.csv&quot;)</code></pre>
+<pre><code>## Rows: 891 Columns: 12</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>View(train)
+
+test &lt;- read_csv(&quot;~/Downloads/titanic/test.csv&quot;)</code></pre>
+<pre><code>## Rows: 418 Columns: 11
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (6): PassengerId, Pclass, Age, SibSp, Parch, Fare
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>View(test)
+
+survived_sink &lt;- read_csv(&quot;~/Downloads/titanic/gender_submission.csv&quot;)</code></pre>
+<pre><code>## Rows: 418 Columns: 2
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## dbl (2): PassengerId, Survived
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>View(survived_sink)</code></pre>
+<div id="view-train" class="section level2">
+<h2>View Train</h2>
+<pre class="r"><code>str(train)</code></pre>
+<pre><code>## spec_tbl_df [891 × 12] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+##  $ PassengerId: num [1:891] 1 2 3 4 5 6 7 8 9 10 ...
+##  $ Survived   : num [1:891] 0 1 1 1 0 0 0 0 1 1 ...
+##  $ Pclass     : num [1:891] 3 1 3 1 3 3 1 3 3 2 ...
+##  $ Name       : chr [1:891] &quot;Braund, Mr. Owen Harris&quot; &quot;Cumings, Mrs. John Bradley (Florence Briggs Thayer)&quot; &quot;Heikkinen, Miss. Laina&quot; &quot;Futrelle, Mrs. Jacques Heath (Lily May Peel)&quot; ...
+##  $ Sex        : chr [1:891] &quot;male&quot; &quot;female&quot; &quot;female&quot; &quot;female&quot; ...
+##  $ Age        : num [1:891] 22 38 26 35 35 NA 54 2 27 14 ...
+##  $ SibSp      : num [1:891] 1 1 0 1 0 0 0 3 0 1 ...
+##  $ Parch      : num [1:891] 0 0 0 0 0 0 0 1 2 0 ...
+##  $ Ticket     : chr [1:891] &quot;A/5 21171&quot; &quot;PC 17599&quot; &quot;STON/O2. 3101282&quot; &quot;113803&quot; ...
+##  $ Fare       : num [1:891] 7.25 71.28 7.92 53.1 8.05 ...
+##  $ Cabin      : chr [1:891] NA &quot;C85&quot; NA &quot;C123&quot; ...
+##  $ Embarked   : chr [1:891] &quot;S&quot; &quot;C&quot; &quot;S&quot; &quot;S&quot; ...
+##  - attr(*, &quot;spec&quot;)=
+##   .. cols(
+##   ..   PassengerId = col_double(),
+##   ..   Survived = col_double(),
+##   ..   Pclass = col_double(),
+##   ..   Name = col_character(),
+##   ..   Sex = col_character(),
+##   ..   Age = col_double(),
+##   ..   SibSp = col_double(),
+##   ..   Parch = col_double(),
+##   ..   Ticket = col_character(),
+##   ..   Fare = col_double(),
+##   ..   Cabin = col_character(),
+##   ..   Embarked = col_character()
+##   .. )
+##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;</code></pre>
+</div>
+</div>
+<div id="checking-the-data-for-missing-values" class="section level1">
+<h1>Checking the Data for Missing Values</h1>
+<pre class="r"><code>colSums(is.na(train) | train ==&quot;&quot;)</code></pre>
+<pre><code>## PassengerId    Survived      Pclass        Name         Sex         Age 
+##           0           0           0           0           0         177 
+##       SibSp       Parch      Ticket        Fare       Cabin    Embarked 
+##           0           0           0           0         687           2</code></pre>
+<div id="lets-look-into-the-information-for-each-value" class="section level2">
+<h2>Let’s look into the information for each value</h2>
+<pre class="r"><code>sapply(train, function(x) length(unique(x)))</code></pre>
+<pre><code>## PassengerId    Survived      Pclass        Name         Sex         Age 
+##         891           2           3         891           2          89 
+##       SibSp       Parch      Ticket        Fare       Cabin    Embarked 
+##           7           7         681         248         148           4</code></pre>
+<p>Since there are 891 unique names in the system, we can remove this column as it most likely won’t provide us with the information we need anyway regarding survivability. Let’s also get rid of Fare, Age, Cabin, and Ticket.</p>
+<p>“Survived”, “Pclass”, “Sex”, and “Embarked” are good candidates for logistic regression as they only have a few variables each. Although, I am unsure of the “Embarked” variable.</p>
+<p>I predict that “Parch” will also have an affect.</p>
+<p>So, let’s view them as categorical variables and use as.factor() to ensure their usability.</p>
+</div>
+<div id="using-as.factor" class="section level2">
+<h2>Using as.factor()</h2>
+<pre class="r"><code>drop &lt;- c(&#39;Name&#39;, &#39;Fare&#39;, &#39;Age&#39;, &#39;Cabin&#39;, &#39;Ticket&#39;)
+titanic_data &lt;- train[,!(names(train) %in% drop)]
+
+# Change ordinal data to factor
+titanic_data$Pclass &lt;- as.factor(titanic_data$Pclass)
+titanic_data$Sex &lt;- as.factor(titanic_data$Sex)
+titanic_data$Embarked &lt;- as.factor(titanic_data$Embarked)
+titanic_data$Survived &lt;- as.factor(titanic_data$Survived)</code></pre>
+</div>
+<div id="lets-begin-an-analysis-on-the-data" class="section level2">
+<h2>Let’s Begin an Analysis on the Data</h2>
+<p>We were given a train and test to begin with, so we will use that data now, but with the new data set developed from the train</p>
+<pre class="r"><code>index &lt;- 0.75*nrow(titanic_data)</code></pre>
+<pre class="r"><code>titanic_data &lt;- titanic_data[sample(1:nrow(titanic_data)), ]
+train.new &lt;- titanic_data[1:index,]
+test.new &lt;- titanic_data[index:0.75*nrow(titanic_data),]</code></pre>
+</div>
+</div>
+<div id="a-simple-logistic-regression-model" class="section level1">
+<h1>A Simple Logistic Regression Model</h1>
+<p>Using the training set, a simple logistic regression model is built using sex as the only predictor for survival status of the passenger.</p>
+<pre class="r"><code>titanic_glm &lt;- glm(Survived ~ Sex, data = train, family = &#39;binomial&#39;)
+summary(titanic_glm)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Survived ~ Sex, family = &quot;binomial&quot;, data = train)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.6462  -0.6471  -0.6471   0.7725   1.8256  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   1.0566     0.1290   8.191 2.58e-16 ***
+## Sexmale      -2.5137     0.1672 -15.036  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1186.7  on 890  degrees of freedom
+## Residual deviance:  917.8  on 889  degrees of freedom
+## AIC: 921.8
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<div id="testing-for-accuracy" class="section level2">
+<h2>Testing for Accuracy</h2>
+<pre class="r"><code>predict_sex_survived &lt;- predict(titanic_glm, newdata = train, type = &#39;response&#39;) 
+
+# Since Survived can only be either 1 or 0, write if statement to round up of down the response
+predict_sex_survived &lt;- ifelse(predict_sex_survived &gt; 0.5,1,0)
+error_1 &lt;- mean(predict_sex_survived!=train$Survived)
+accuracy_1 &lt;- 1-error_1
+accuracy_1</code></pre>
+<pre><code>## [1] 0.7867565</code></pre>
+<p>The model is over 70% accurate, which is a good start.</p>
+<p>Let’s create a bar plot to show the probability of survival depending on Sex</p>
+<pre class="r"><code>titanic_data %&gt;% count(Sex)</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   Sex        n
+##   &lt;fct&gt;  &lt;int&gt;
+## 1 female   314
+## 2 male     577</code></pre>
+<pre class="r"><code>titanic_data %&gt;% count(Survived)</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   Survived     n
+##   &lt;fct&gt;    &lt;int&gt;
+## 1 0          549
+## 2 1          342</code></pre>
+<pre class="r"><code>titanic_data %&gt;%
+  ggplot(aes(Survived, fill = Sex)) + 
+  geom_bar(position = &quot;fill&quot;) +
+  labs(x = &quot;Survival Status&quot;, y = &quot;Probabilty of Survival&quot;) </code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>As we can see in the plot, sex had a large impact on survival; however, we cannot say that survival was only based off of sex.</p>
+</div>
+</div>
+<div id="logistic-model-regression" class="section level1">
+<h1>Logistic Model Regression</h1>
+<p>This process should make the accuracy of our data much more advanced</p>
+<pre class="r"><code>titanic_glm &lt;- glm(Survived ~ Sex, data = train, family = &#39;binomial&#39;)
+summary(titanic_glm)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Survived ~ Sex, family = &quot;binomial&quot;, data = train)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.6462  -0.6471  -0.6471   0.7725   1.8256  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   1.0566     0.1290   8.191 2.58e-16 ***
+## Sexmale      -2.5137     0.1672 -15.036  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1186.7  on 890  degrees of freedom
+## Residual deviance:  917.8  on 889  degrees of freedom
+## AIC: 921.8
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<pre class="r"><code>exp(coefficients(titanic_glm))</code></pre>
+<pre><code>## (Intercept)     Sexmale 
+##  2.87654321  0.08096732</code></pre>
+<pre class="r"><code>exp(confint(titanic_glm))</code></pre>
+<pre><code>## Waiting for profiling to be done...</code></pre>
+<pre><code>##                  2.5 %    97.5 %
+## (Intercept) 2.24473635 3.7245050
+## Sexmale     0.05804709 0.1118353</code></pre>
+<p>From the results, the ratio is about 0.0810, with 95% CI being 0.0580 and 0.1118. This means that the odds of surviving the sinking of the titanic for males is significantly (over 90%) less when compared to females.</p>
+</div>
+<div id="lets-try-the-same-thing-for-age" class="section level1">
+<h1>Let’s try the same thing for Age</h1>
+<pre class="r"><code>titanic_glm.2 &lt;- glm(Survived ~ Age, family = binomial, data = train)
+summary(titanic_glm.2)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Survived ~ Age, family = binomial, data = train)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.1488  -1.0361  -0.9544   1.3159   1.5908  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept) -0.05672    0.17358  -0.327   0.7438  
+## Age         -0.01096    0.00533  -2.057   0.0397 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 964.52  on 713  degrees of freedom
+## Residual deviance: 960.23  on 712  degrees of freedom
+##   (177 observations deleted due to missingness)
+## AIC: 964.23
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>Considering the p value, age is a significant predictor to survival.</p>
+<pre class="r"><code>exp(coefficients(titanic_glm.2))</code></pre>
+<pre><code>## (Intercept)         Age 
+##   0.9448552   0.9890964</code></pre>
+<pre class="r"><code>exp(confint(titanic_glm.2))</code></pre>
+<pre><code>## Waiting for profiling to be done...</code></pre>
+<pre><code>##                 2.5 %   97.5 %
+## (Intercept) 0.6722345 1.328528
+## Age         0.9787246 0.999417</code></pre>
+<p>Looking at these results, the ratio is 0.9891, with 95% CI being 0.9787 and 0.9994. This means that for every increase in 1 year of age, the odds of surviving the sinking decreases by about 1%.</p>
+</div>
+<div id="multivariate-linear-regression" class="section level1">
+<h1>Multivariate Linear Regression</h1>
+<pre class="r"><code>titanic_glm_multi &lt;- glm(Survived ~ Sex + Age + Parch + Fare + Embarked, data = train, family = binomial)
+summary(titanic_glm_multi)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Survived ~ Sex + Age + Parch + Fare + Embarked, 
+##     family = binomial, data = train)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.2830  -0.6430  -0.5522   0.7795   2.2184  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  1.867293   0.354729   5.264 1.41e-07 ***
+## Sexmale     -2.505509   0.203443 -12.316  &lt; 2e-16 ***
+## Age         -0.015079   0.006872  -2.194  0.02822 *  
+## Parch       -0.303793   0.115323  -2.634  0.00843 ** 
+## Fare         0.012909   0.002935   4.398 1.09e-05 ***
+## EmbarkedQ   -1.395916   0.551529  -2.531  0.01137 *  
+## EmbarkedS   -0.656509   0.253908  -2.586  0.00972 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 960.90  on 711  degrees of freedom
+## Residual deviance: 697.18  on 705  degrees of freedom
+##   (179 observations deleted due to missingness)
+## AIC: 711.18
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<p>All things that I predicted earlier do have an affect of the survival rate. Although, earlier I suspected that “Embarked” may also create a difference. Unfortunately, my prediction was not correct.</p>
+<p>So let’s remove “Embarked”</p>
+<pre class="r"><code>titanic_glm_multi &lt;- glm(Survived ~ Sex + Age + Parch + Fare, data = train, family = binomial)
+summary(titanic_glm_multi)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = Survived ~ Sex + Age + Parch + Fare, family = binomial, 
+##     data = train)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.3992  -0.6546  -0.5760   0.7675   2.0654  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  1.218483   0.261806   4.654 3.25e-06 ***
+## Sexmale     -2.486717   0.199948 -12.437  &lt; 2e-16 ***
+## Age         -0.014465   0.006751  -2.143  0.03213 *  
+## Parch       -0.327533   0.113588  -2.884  0.00393 ** 
+## Fare         0.015081   0.002908   5.187 2.14e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 964.52  on 713  degrees of freedom
+## Residual deviance: 707.40  on 709  degrees of freedom
+##   (177 observations deleted due to missingness)
+## AIC: 717.4
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>exp(coefficients(titanic_glm_multi))</code></pre>
+<pre><code>## (Intercept)     Sexmale         Age       Parch        Fare 
+##   3.3820527   0.0831826   0.9856386   0.7206992   1.0151956</code></pre>
+<pre class="r"><code>exp(confint(titanic_glm_multi))</code></pre>
+<pre><code>## Waiting for profiling to be done...</code></pre>
+<pre><code>##                  2.5 %    97.5 %
+## (Intercept) 2.04207094 5.7096914
+## Sexmale     0.05576965 0.1222331
+## Age         0.97251882 0.9986355
+## Parch       0.57276422 0.8969299
+## Fare        1.00972794 1.0212996</code></pre>
+<p>Just as suspected, all predictors play a major role in predicting survivability. Age and Sex show the same results as above. Passenger Fare also gradually increases the survival rate. As amount paid increases, so does probability of survival.</p>
+<p>Finally, let’s check the work and make sure this logistic regression model is a good fit.</p>
+</div>
+<div id="checking-the-fit-of-the-model" class="section level1">
+<h1>Checking The Fit of the Model</h1>
+<pre class="r"><code>survived_titanic &lt;- train %&gt;%
+  filter(!is.na(Sex) &amp; !is.na(Age) &amp; !is.na(Parch) &amp; !is.na(Fare))
+hoslem.test(survived_titanic$Survived, fitted(titanic_glm_multi))</code></pre>
+<pre><code>## 
+##  Hosmer and Lemeshow goodness of fit (GOF) test
+## 
+## data:  survived_titanic$Survived, fitted(titanic_glm_multi)
+## X-squared = 12.813, df = 8, p-value = 0.1185</code></pre>
+<p>P-value shows no significant evidence to suggest that this model is a bad fit for the data.</p>
+</div>

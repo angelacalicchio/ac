@@ -1,0 +1,183 @@
+---
+title: 'Logistic Regression: Titanic Dataset'
+author: "R package build"
+date: '2022-04-02'
+slug: logistic-regression-titanic-dataset
+categories: []
+tags: []
+---
+
+# All Data amd Information about the data set can be found at the following url...
+```{r}
+url <- 'https://www.kaggle.com/c/titanic'
+```
+
+# Load Data Set and Necessary Libraries
+```{r}
+library(randomForest)
+library(dplyr)
+library(tidyverse)
+library(caret)
+library(readr)
+library(ResourceSelection)
+
+train <- read_csv("~/Downloads/titanic/train.csv")
+View(train)
+
+test <- read_csv("~/Downloads/titanic/test.csv")
+View(test)
+
+survived_sink <- read_csv("~/Downloads/titanic/gender_submission.csv")
+View(survived_sink)
+```
+
+## View Train
+```{r}
+str(train)
+```
+
+# Checking the Data for Missing Values
+```{r}
+colSums(is.na(train) | train =="")
+```
+
+## Let's look into the information for each value 
+```{r}
+sapply(train, function(x) length(unique(x)))
+```
+
+Since there are 891 unique names in the system, we can remove this column as it most likely won't provide us with the information we need anyway regarding survivability. Let's also get rid of Fare, Age, Cabin, and Ticket.
+
+"Survived", "Pclass", "Sex", and "Embarked" are good candidates for logistic regression as they only have a few variables each. Although, I am unsure of the "Embarked" variable.
+
+I predict that "Parch" will also have an affect.
+
+So, let's view them as categorical variables and use as.factor() to ensure their usability.
+
+## Using as.factor()
+```{r}
+drop <- c('Name', 'Fare', 'Age', 'Cabin', 'Ticket')
+titanic_data <- train[,!(names(train) %in% drop)]
+
+# Change ordinal data to factor
+titanic_data$Pclass <- as.factor(titanic_data$Pclass)
+titanic_data$Sex <- as.factor(titanic_data$Sex)
+titanic_data$Embarked <- as.factor(titanic_data$Embarked)
+titanic_data$Survived <- as.factor(titanic_data$Survived)
+```
+
+## Let's Begin an Analysis on the Data
+
+We were given a train and test to begin with, so we will use that data now, but with the new data set developed from the train
+
+```{r}
+index <- 0.75*nrow(titanic_data)
+```
+
+```{r}
+titanic_data <- titanic_data[sample(1:nrow(titanic_data)), ]
+train.new <- titanic_data[1:index,]
+test.new <- titanic_data[index:0.75*nrow(titanic_data),]
+```
+
+# A Simple Logistic Regression Model
+
+Using the training set, a simple logistic regression model is built using sex as the only predictor for survival status of the passenger.
+
+```{r}
+titanic_glm <- glm(Survived ~ Sex, data = train, family = 'binomial')
+summary(titanic_glm)
+```
+
+## Testing for Accuracy
+```{r}
+predict_sex_survived <- predict(titanic_glm, newdata = train, type = 'response') 
+
+# Since Survived can only be either 1 or 0, write if statement to round up of down the response
+predict_sex_survived <- ifelse(predict_sex_survived > 0.5,1,0)
+error_1 <- mean(predict_sex_survived!=train$Survived)
+accuracy_1 <- 1-error_1
+accuracy_1
+```
+
+The model is over 70% accurate, which is a good start.
+
+Let's create a bar plot to show the probability of survival depending on Sex
+
+```{r}
+titanic_data %>% count(Sex)
+titanic_data %>% count(Survived)
+```
+
+```{r}
+titanic_data %>%
+  ggplot(aes(Survived, fill = Sex)) + 
+  geom_bar(position = "fill") +
+  labs(x = "Survival Status", y = "Probabilty of Survival") 
+```
+
+As we can see in the plot, sex had a large impact on survival; however, we cannot say that survival was only based off of sex.
+
+# Logistic Model Regression
+This process should make the accuracy of our data much more advanced 
+```{r}
+titanic_glm <- glm(Survived ~ Sex, data = train, family = 'binomial')
+summary(titanic_glm)
+```
+
+```{r}
+exp(coefficients(titanic_glm))
+exp(confint(titanic_glm))
+```
+
+From the results, the ratio is about 0.0810, with 95% CI being 0.0580 and 0.1118. This means that the odds of surviving the sinking of the titanic for males is significantly (over 90%) less when compared to females.
+
+# Let's try the same thing for Age
+```{r}
+titanic_glm.2 <- glm(Survived ~ Age, family = binomial, data = train)
+summary(titanic_glm.2)
+```
+
+Considering the p value, age is a significant predictor to survival.
+
+```{r}
+exp(coefficients(titanic_glm.2))
+exp(confint(titanic_glm.2))
+```
+
+Looking at these results, the ratio is 0.9891, with 95% CI being 0.9787 and 0.9994. This means that for every increase in 1 year of age, the odds of surviving the sinking decreases by about 1%.
+
+# Multivariate Linear Regression
+```{r}
+titanic_glm_multi <- glm(Survived ~ Sex + Age + Parch + Fare + Embarked, data = train, family = binomial)
+summary(titanic_glm_multi)
+```
+
+All things that I predicted earlier do have an affect of the survival rate. Although, earlier I suspected that "Embarked" may also create a difference. Unfortunately, my prediction was not correct.
+
+So let's remove "Embarked"
+
+```{r}
+titanic_glm_multi <- glm(Survived ~ Sex + Age + Parch + Fare, data = train, family = binomial)
+summary(titanic_glm_multi)
+```
+
+```{r}
+exp(coefficients(titanic_glm_multi))
+exp(confint(titanic_glm_multi))
+```
+
+Just as suspected, all predictors play a major role in predicting survivability. Age and Sex show the same results as above. Passenger Fare also gradually increases the survival rate. As amount paid increases, so does probability of survival.
+
+Finally, let's check the work and make sure this logistic regression model is a good fit. 
+
+# Checking The Fit of the Model
+```{r}
+survived_titanic <- train %>%
+  filter(!is.na(Sex) & !is.na(Age) & !is.na(Parch) & !is.na(Fare))
+hoslem.test(survived_titanic$Survived, fitted(titanic_glm_multi))
+```
+
+P-value shows no significant evidence to suggest that this model is a bad fit for the data.
+
+
