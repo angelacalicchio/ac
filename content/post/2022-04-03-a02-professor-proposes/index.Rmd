@@ -1,0 +1,355 @@
+---
+title: 'A02: Professor Proposes'
+author: "R package build"
+date: '2022-04-03'
+slug: a02-professor-proposes
+categories: []
+tags: []
+---
+
+## Link to Excel and CSV Files from GitHub
+```{r}
+link <- url("https://github.com/angelacalicchio/a02-diamonds")
+```
+
+# Loading Data and Libraries
+```{r}
+library(pacman)
+library(magrittr)
+library(productplots) 
+library(psych) 
+library(RColorBrewer)
+library(tidyverse) 
+library(dplyr)
+
+url <- 'https://raw.githubusercontent.com/angelacalicchio/a02-diamonds/main/Professor_Proposes_Data.csv'
+diamond_selection <- read_csv(url)
+
+View(diamond_selection)
+```
+
+# EDA: Exploratory Data Analysis
+While doing an EDA we will be encountering both univariate analysis and multivariate analysis 
+
+### Creating a Dataframe for Data
+
+We also have to remove the dollar sign and comma so that the data can be explored as a numeric variable
+
+```{r}
+diamond_selection$Price <- gsub(",", "", diamond_selection$Price)
+
+diamond_selection$Price <- gsub("\\$", "", diamond_selection$Price)
+
+diamond_selection <- na.omit(diamond_selection)
+
+print(diamond_selection)
+```
+
+```{r}
+str(diamond_selection)
+```
+
+### Converting Price with as.numeric()
+```{r}
+diamond_selection$Price <- as.numeric(diamond_selection$Price)
+
+str(diamond_selection)
+```
+
+## Univariate Analyses 
+
+### Price 
+
+#### Summary 
+```{r}
+sum_price <- summary(diamond_selection$Price)
+
+describe(sum_price, fast = TRUE)
+```
+
+Before, it stated that the minimum was 1, which is simply not true. So, I removed the NA in an earlier chunk, as it was causing difficulties in my EDA. 
+
+#### Plot
+```{r}
+ggplot(diamond_selection, aes(x = Price)) +
+  geom_histogram(binwidth = 100, fill = "#D872FB") +
+  labs(title = "Price of Diamonds", x = "Price (US $)", y = "Frequency") 
+```
+
+There was a range in price from $160 to $3145 and, as shown on the graph, had bimodal distribution. Bimodal distribution shows that there are two groups of diamond prices, in which the first group was cheaper than $1000, and the other was more than $1500.
+
+### Carat
+
+#### Summary 
+```{r}
+sum_carat <- summary(diamond_selection$Carat)
+
+describe(sum_carat, fast = TRUE)
+```
+
+#### Plot
+```{r}
+ggplot(diamond_selection, aes(x = Carat)) +
+  geom_histogram(binwidth = 0.05, fill = "#F8766D") +
+  labs(title = "Carat of Diamonds", x = "Carat", y = "Frequency") 
+```
+
+The Carat ranges from 0.09 to 1.58 and, as shown by the graph, had bimodal distribution. Again, the data appears in two separate groups 0.09 to 0.30 carats and 0.80 to 1.58 carats. 
+
+### Clarity 
+
+#### Counts
+```{r}
+diamond_selection %>%
+  count(Clarity)
+```
+
+#### Plot
+```{r}
+ggplot(diamond_selection, aes(x = Clarity)) +
+  geom_bar(fill = "#619CFF")
+```
+
+This graph is self-explanatory. It simply shows the frequencies of each Clarity variable. From the graph, we can see the lowest occurrence variables in this data set are VVS1 and VVS2, which 2 and 5 diamonds, respectively. While the highest frequencies include both SI1 and SI2, with 116 and 110 diamonds, respectively.
+
+### Color
+
+#### Summary 
+```{r}
+sum_colours <- diamond_selection %>%
+  count(Colour)
+
+sum_colours
+```
+
+Using the data we have, we can combine the color codes into their respective color types
+
+Our values should fall into these categories with D -F as	Colorless, G - I as Near Colorless, J - K as Faint Yellow, and L as Very light yellow. 
+
+```{r}
+colors <- c("Colorless", "Near Colorless", "Faint Yellow", "Very Light Yellow")
+numbers <- c("132", "193", "103", "12")
+
+color_table <- data.frame(colors, numbers)
+
+glimpse(color_table)
+```
+
+#### Plot
+```{r}
+ggplot(diamond_selection, aes(x = Colour)) +
+  geom_bar(fill = "seagreen3")
+```
+
+As seen by all color data, we have the least number of "Very Light Yellow," with only 12 diamonds, and the most "Near Colorless," with 193 diamonds.
+
+### Cut 
+
+#### Summary 
+```{r}
+sum_cuts <- diamond_selection %>%
+  count(Cut)
+
+sum_cuts
+```
+
+Keeping in mind of the Cut Code. F is "Fair," G is "Good," I is "Very Good," V is "Excellent," and X is "Ideal." 
+
+#### Plot 
+```{r}
+ggplot(diamond_selection, aes(x = Cut)) +
+  geom_bar(fill = "palevioletred1")
+```
+
+Unsurprisingly, most of the diamonds fall into the "Ideal" cut and, while slightly surprising, the "Good" Cut is the least. 
+
+### Certification 
+
+#### Summary 
+```{r}
+sum_certifications <- diamond_selection %>%
+  count(Certification)
+
+sum_certifications 
+```
+
+#### Plot 
+```{r}
+ggplot(diamond_selection, aes(x = Certification)) +
+  geom_bar(fill = "orange2")
+```
+
+The most certifications seem to GIA, while the least was AGS. Absolutely none of the diamonds have DOW certifications. 
+
+### Polish 
+
+#### Summary 
+```{r}
+sum_polish <- diamond_selection %>%
+  count(Polish)
+
+sum_polish 
+```
+
+Again the Polish code follows that of the cut code. F is "Fair," G is "Good," I is "Very Good," V is "Excellent," and X is "Ideal." 
+
+#### Plot
+```{r}
+ggplot(diamond_selection, aes(x = Polish)) +
+  geom_bar(fill = "purple2")
+```
+
+Most diamonds are of "Excellent" polished with 203 diamonds. The least is a tie between "Fair" and "Very Good," with 5 diamonds each. There seems to be a discrepancy with V, as there seems to be a lower case "v" somewhere within the data.
+
+### Symmetry 
+
+#### Summary 
+```{r}
+sum_symmetry <- diamond_selection %>%
+  count(Symmetry)
+
+sum_symmetry
+```
+
+Again, the code is the same. F is "Fair," G is "Good," I is "Very Good," V is "Excellent," and X is "Ideal." 
+
+#### Plot 
+```{r}
+ggplot(diamond_selection, aes(x = Symmetry)) +
+  geom_bar(fill = "gold")
+```
+
+Most diamonds are of "Excellent" symmetry with 206 diamonds falling under this category. The least amount of diamonds fall under "Very Good" symmetry with 5 diamonds.
+
+## Bivariate Analysis 
+
+### Price vs. Carat
+
+#### Plot 
+```{r}
+plot(Price~Carat, diamond_selection)
+```
+
+We observe that, once again, there are two distinct groups. One of which contain diamonds of lower value and carat, whilst the other contains high value and carat diamonds. We can focus more on those of higher value.
+
+## Regression with Carat
+
+### Correlation 
+```{r}
+cor(diamond_selection$Price, diamond_selection$Carat)
+```
+
+This shows a positive correlation between price and carat
+
+### Model
+```{r}
+model <- lm(diamond_selection$Price ~ diamond_selection$Carat)
+
+summary(model)
+```
+
+```{r}
+model$coefficients
+```
+
+```{r}
+anova(model)
+```
+
+According to the data we've collected, r-squared indicates an 85% correlation between carats and price. The negative regression coefficient may represent a carrying capacity of sorts. Meaning heavier diamonds are not always associated with a higher value.
+
+## Regression with Clarity 
+
+### Model
+```{r}
+model.2 <- lm(diamond_selection$Price ~ diamond_selection$Clarity)
+
+summary(model.2)
+```
+
+```{r}
+model.2$coefficients
+```
+
+```{r}
+anova(model.2)
+```
+
+According to the data that we've collected for clarity, the R squared value of 32.13% shows a Positive correlation between price and clarity. Depending on the type of clarity, it may change the price of the diamond. However, some clarity is may reduce the price while others may increase it.
+
+## Regression with Certification 
+```{r}
+model.3 <- lm(diamond_selection$Price ~ diamond_selection$Certification)
+
+summary(model.3)
+```
+
+```{r}
+anova(model.3)
+```
+
+Again, with a R Square value of 39.37%, we can confidently say that there is a positive correlation between certification and price. 
+
+## Regression with Cut
+```{r}
+model.4 <- lm(diamond_selection$Price ~ diamond_selection$Cut)
+
+summary(model.4)
+```
+
+```{r}
+anova(model.4)
+```
+
+According to our data, there is an R squared value of 10.9%, which is low, but still shows a positive correlation between price and cut. Certain cuts are worth more, what others lose value. This means that cut does have an affect on the price, however, it is quite a small affect.
+
+## Regression with Polish 
+```{r}
+model.5 <- lm(diamond_selection$Price ~ diamond_selection$Polish)
+
+summary(model.3)
+```
+
+```{r}
+anova(model.5)
+```
+
+Polish also shows a positive correlation with an R Square value of 39.37%. This means that, just like certification, polish has a positive correlation meaning it does affect price to a certain extent.
+
+## Regression with Symmetry
+```{r}
+model.6 <- lm(diamond_selection$Price ~ diamond_selection$Symmetry)
+
+summary(model.6)
+```
+
+```{r}
+anova(model.6)
+```
+
+While symmetry seem to have a positive correlation, the R Square value is only 6.206%. This means that while Symmetry does have a positive correlation, it probably doesn't contribute to the price of the diamond.
+
+## Regression with Color
+```{r}
+model.7 <- lm(diamond_selection$Price ~ diamond_selection$Colour)
+
+summary(model.7)
+```
+
+```{r}
+anova(model.7)
+```
+
+According to my data, color also has a small R squared value are only 8.507%. What does means is that the color of the diamond probably also doesn't affect price all that much.
+
+# What did we find out?
+
+Carat is the primary determinant of the price.
+
+This is followed by clarity, certification, and polish.
+
+Cut, symmetry, and color also do you have the least effect on price and probably didn't contribute all that much when the diamond was quoted. 
+
+The price quoted to the professor seem to be on the higher side; however it did not include the cost of retailing the ring itself. So it's safe to assume that the price, even though on the higher side, it's still a fair price all things considered.
+
+Since the professor is only going to buy a diamond once, the professor can offer a price of around $2900-$3000.
